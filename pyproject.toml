@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "simple-os-simulator"
+version = "1.0.0"
+description = "A beginner-friendly command-line Operating Systems simulator with a neon terminal dashboard."
+readme = "report.md"
+requires-python = ">=3.9"
+authors = [
+  { name = "Student Project" }
+]
+
+[project.scripts]
+simple-os-simulator = "os_simulator:main"
+
+[tool.setuptools]
+py-modules = ["os_simulator"]
