@@ -1,2 +1,1 @@
-# This project uses only the Python standard library.
-# No external runtime dependencies are required.
+Flask>=3.0,<4.0

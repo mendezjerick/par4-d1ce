@@ -1,186 +1,179 @@
 # Simple Operating System Simulator Report
 
 ## Program Description
-The **Simple Operating System Simulator** is a beginner-friendly Python command-line project that demonstrates core Operating Systems topics through a menu-driven neon terminal interface. The simulator is styled with a VA-11 HALL-A inspired cyberpunk aesthetic using ANSI escape codes, boxed panels, and neon colors.
+The **Simple Operating System Simulator** is a web-based final project built to demonstrate core Operating Systems concepts in a clear, beginner-friendly, and visually polished way. It is a rebuilt version of the original terminal demo, but now presented as a browser dashboard using **Flask**, **HTML**, **CSS**, and **JavaScript**.
 
-The program includes:
-- Process management with predefined processes
-- Round Robin CPU scheduling with time quantum = 2
-- Fixed-partition memory allocation and deallocation
-- A text-based Gantt chart
-- An in-memory file system
-- Printer queue spooling
-- A guided demo mode
+The simulator keeps the same academic purpose as the original project while improving usability and presentation. It includes:
 
-The project is implemented using Object-Oriented Programming with the following classes:
-- `Process`
-- `Scheduler`
-- `MemoryManager`
-- `FileSystem`
-- `PrinterSpooler`
-- `OperatingSystemSimulator`
+- process management
+- Round Robin CPU scheduling
+- fixed-partition memory management
+- an in-memory file system
+- printer queue / I/O spooling
+- step-by-step and automatic demo controls
 
-## How to Run
-1. Open a terminal in the project folder.
-2. Run the interactive program:
+The interface uses a **VA-11 HALL-A inspired cyberpunk aesthetic** with dark panels, neon highlights, glowing borders, and a futuristic dashboard layout to make the project more engaging during live presentation and easier to capture in screenshots.
 
-```bash
-python os_simulator.py
-```
+## OS Concepts Used
+This project demonstrates several important Operating Systems concepts:
 
-3. Run the automatic demo mode:
+- **Process Management** through process records and state transitions
+- **CPU Scheduling** through the Round Robin algorithm
+- **Memory Management** through fixed partitions and allocation/deallocation
+- **File System Concepts** through in-memory file operations
+- **I/O Management** through printer queue spooling
 
-```bash
-python os_simulator.py --demo
-```
+Each concept is shown visually in its own panel so that the relationship between modules is easy to explain.
 
-4. Optional: install the project with pip from the project folder:
+## Process Management Explanation
+The simulator starts with four predefined processes:
 
-```bash
-pip install .
-```
+- `P1 - Mix Compiler`
+- `P2 - Neon Renderer`
+- `P3 - Receipt Sync`
+- `P4 - Night Backup`
 
-5. After installation, you can launch it with:
+Each process contains the required fields:
 
-```bash
-simple-os-simulator
-```
-
-6. If your instructor expects a requirements file, this project also includes:
-
-```bash
-pip install -r requirements.txt
-```
-
-This command does not install extra packages because the simulator uses only the Python standard library.
-
-## OS Concepts Explanation
-
-### 1. Process Management
-The simulator starts with four predefined processes. Each process stores:
 - PID
-- Process name
-- Burst time
-- Remaining time
-- Memory requirement
-- State
-- Waiting time
-- Turnaround time
+- process name
+- burst time
+- remaining time
+- memory requirement
+- state
+- waiting time
+- turnaround time
 
-The program tracks the required process states:
-- **Ready**: the process has memory and is waiting for CPU time
-- **Running**: the process is currently executing on the CPU
-- **Waiting**: the process cannot run yet because memory is unavailable
-- **Terminated**: the process has completed execution
+The system tracks these process states:
 
-This part of the project demonstrates how an operating system keeps information about active jobs and updates their state during execution.
+- **Ready** - the process has memory and is waiting for CPU time
+- **Running** - the process is currently using the CPU
+- **Waiting** - the process cannot continue because memory is not available
+- **Terminated** - the process has finished execution
 
-### 2. Round Robin Scheduling
-The CPU scheduler uses the **Round Robin** algorithm with a fixed time quantum of **2** time units.
+The Process Manager panel shows all of this data in a structured table, making it easy to discuss how processes are represented inside an operating system.
 
-How it works:
-- A process from the ready queue gets the CPU
-- It runs for up to 2 time units
-- If it is not finished, it returns to the Ready state
-- If it finishes, it moves to the Terminated state
+## Round Robin Scheduling Explanation
+The CPU scheduling module uses the **Round Robin** algorithm.
 
-The simulator also calculates:
-- **Waiting time**
-- **Turnaround time**
-- **Execution order**
+- Default time quantum: **2**
+- The quantum can be changed in the web interface
+- One scheduling step runs exactly one time slice
+- Demo mode automatically keeps stepping until the sample run finishes
 
-At the end of scheduling, the program prints a text-based **Gantt chart** to show the order and timing of execution.
+Round Robin works as follows:
 
-### 3. Memory Management Using Fixed Partitions
-The simulator uses fixed memory partitions:
+1. A process from the ready queue is selected.
+2. It runs for up to the configured time quantum.
+3. If it is not finished, it returns to the Ready queue.
+4. If it finishes, it moves to the Terminated state.
+
+The simulator records:
+
+- execution order
+- waiting time
+- turnaround time
+- average waiting time
+- average turnaround time
+
+The web dashboard also includes a **Gantt chart** that displays the order and duration of CPU slices as a horizontal timeline.
+
+## Memory Management Explanation
+The simulator uses **fixed memory partitions**:
 
 ```text
 [64, 64, 128] MB
 ```
 
-Each process has a memory requirement. A process is allocated only if it fits in a free partition.
+Each process has a memory requirement. The memory manager uses a simple **first-fit allocation** approach:
 
-Rules shown by the simulator:
-- If a partition is available and large enough, the process is allocated
-- If no suitable partition is available, the process enters the **Waiting** state
-- When a process terminates, its partition is freed
-- Waiting processes can then move to **Ready** if memory becomes available
+- If a free partition is large enough, the process is allocated there.
+- If no partition fits, the process stays in the **Waiting** state.
+- When a process terminates, its partition is automatically freed.
+- Waiting processes are checked again when memory becomes available.
 
-The console memory map shows:
-- Partition number
-- Partition size
-- Whether the partition is free or occupied
-- Which process is currently using it
+The web version represents memory as a set of cards and bars, showing:
 
-### 4. File System Simulation
-The simulator includes a simple **in-memory file system**, meaning no real files are created by the OS simulation itself.
+- partition number
+- partition size
+- whether the partition is occupied
+- which process is using it
+- used and free memory inside each partition
 
-Supported operations:
-- Create a file
-- Delete a file
-- List files
-- Display file contents
+This makes the memory concept easier to explain than a plain text console output.
 
-This models the basic idea of a file system by storing file names and file contents in Python data structures.
-
-### 5. I/O Spooling with a Printer Queue
-The simulator includes a **printer spooler** that behaves like a print queue.
+## File System Explanation
+The project includes a simple **in-memory file system**, meaning it does not create or delete real operating system files as part of the simulation itself.
 
 Supported operations:
-- Add a print job
-- View queued jobs
-- Process the next print job
 
-This demonstrates the idea of **spooling**, where I/O jobs are stored in a queue and handled in order instead of being processed immediately by the CPU.
+- create file
+- delete file
+- list files
+- display file contents
 
-## Program Features and Requirement Mapping
+Each file stores:
 
-### Core Features Implemented
-- Process management with 4 predefined processes
-- Process states: Ready, Running, Waiting, Terminated
-- Round Robin scheduling
-- Waiting time and execution order tracking
-- Text-based Gantt chart
-- Fixed-partition memory management
-- Memory allocation and deallocation
-- Console memory map
-- In-memory file system
-- Printer queue / spooling simulation
+- file name
+- contents
+- size
 
-### User Interface Features
-- Dark terminal dashboard style
-- Neon pink, cyan, purple, and yellow color palette
-- Boxed section panels
-- Styled headers such as `PROCESS MANAGER`, `MEMORY MAP`, and `PRINTER SPOOLER`
-- Consistent visual formatting across all screens
-- Highlighted process states using color
+The File System panel includes a file creation form, a file list, and a file viewer. This demonstrates the idea of file storage and retrieval while keeping the implementation safe and simple.
 
-### Menu Features
-- View process table
-- Run scheduler
-- View memory map
-- File system operations
-- Printer queue operations
-- Run full demo
+## I/O Spooling Explanation
+The simulator includes a **printer spooler** to demonstrate I/O spooling.
 
-## Sample Outputs
+Supported actions:
 
-### Screenshot Placeholder 1: Main Process Table
-> Insert screenshot of the neon `PROCESS MANAGER` panel here.
+- add a print job
+- view queued print jobs
+- process the next job
+- review recently completed jobs
 
-### Screenshot Placeholder 2: Memory Map
-> Insert screenshot of the `MEMORY MAP` panel here.
+The spooler uses **FIFO order**, which means the first job added is the first one processed. This models how operating systems often buffer output jobs before sending them to a device.
 
-### Screenshot Placeholder 3: Gantt Chart
-> Insert screenshot of the final Round Robin `GANTT CHART` here.
+## Web Implementation Overview
+The web version uses a simple client-server structure:
 
-### Screenshot Placeholder 4: File System and Printer Queue
-> Insert screenshot of the `IN-MEMORY FILE SYSTEM` and `PRINTER SPOOLER` panels here.
+- **Flask backend** stores the simulator state in Python objects
+- **HTML/CSS frontend** builds the dashboard layout and cyberpunk design
+- **JavaScript** sends `fetch()` requests to Flask routes and updates the page dynamically
 
-### Screenshot Placeholder 5: Demo Mode
-> Insert screenshot of a step-by-step scheduler demo screen here.
+Important implementation details:
+
+- No database is used
+- All simulator data is stored in memory
+- The scheduler state is deterministic for presentation
+- Completed processes free memory automatically
+- The page updates without reloading when actions are performed
+
+Main files:
+
+- `app.py` - backend logic and API routes
+- `templates/index.html` - dashboard layout
+- `static/style.css` - interface styling
+- `static/script.js` - frontend interactivity
+
+## Sample Output / Screenshot Placeholders
+### Screenshot Placeholder 1: Hero Dashboard
+> Insert screenshot of the main web dashboard header and control panel here.
+
+### Screenshot Placeholder 2: Process Manager
+> Insert screenshot of the process table with different process states here.
+
+### Screenshot Placeholder 3: CPU Scheduler and Gantt Chart
+> Insert screenshot of the scheduler panel after several Round Robin steps here.
+
+### Screenshot Placeholder 4: Memory Manager
+> Insert screenshot of the fixed partition memory cards here.
+
+### Screenshot Placeholder 5: File System Panel
+> Insert screenshot of the file list and file viewer here.
+
+### Screenshot Placeholder 6: Printer Queue / I-O Spooler
+> Insert screenshot of the printer queue and completed jobs here.
 
 ## Conclusion
-This project successfully demonstrates key Operating Systems ideas in a clear and presentation-friendly way. It shows how processes are managed, how CPU time is shared with Round Robin scheduling, how fixed memory partitions affect execution, how simple file operations can be simulated in memory, and how I/O spooling works through a printer queue.
+The web-based **Simple Operating System Simulator** successfully demonstrates the required Operating Systems concepts in a form that is more visual, interactive, and presentation-friendly than the original terminal version.
 
-The program remains simple enough for a live class presentation while still looking polished and visually distinctive because of its cyberpunk neon terminal design.
+It still satisfies the original academic requirements, but the browser dashboard makes the simulation easier to understand, easier to demo live, and more impressive in screenshots for the final report and presentation. The project remains simple enough for student explanation while providing a polished and memorable user experience.

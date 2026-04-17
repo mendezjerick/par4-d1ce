@@ -3,17 +3,17 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "simple-os-simulator"
-version = "1.0.0"
-description = "A beginner-friendly command-line Operating Systems simulator with a neon terminal dashboard."
-readme = "report.md"
+name = "simple-os-simulator-web"
+version = "2.0.0"
+description = "A beginner-friendly web-based Operating Systems simulator built with Flask and a cyberpunk dashboard UI."
+readme = "README.md"
 requires-python = ">=3.9"
+dependencies = [
+  "Flask>=3.0,<4.0",
+]
 authors = [
   { name = "Student Project" }
 ]
 
-[project.scripts]
-simple-os-simulator = "os_simulator:main"
-
 [tool.setuptools]
-py-modules = ["os_simulator"]
+py-modules = ["app", "os_simulator"]

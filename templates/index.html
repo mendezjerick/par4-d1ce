@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Operating System Simulator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="backdrop-grid" aria-hidden="true"></div>
+    <div class="app-shell">
+        <header class="panel hero-panel">
+            <div class="hero-copy">
+                <p class="eyebrow">FINAL PROJECT // WEB CONSOLE</p>
+                <h1>Simple Operating System Simulator</h1>
+                <p class="hero-subtitle">
+                    A browser-based cyberpunk operating dashboard inspired by VA-11 HALL-A,
+                    designed to demonstrate process management, CPU scheduling, memory allocation,
+                    file handling, and printer spooling in one clean presentation screen.
+                </p>
+                <div class="hero-tags">
+                    <span class="tag">Flask + Python</span>
+                    <span class="tag">HTML / CSS / JavaScript</span>
+                    <span class="tag">Round Robin Scheduling</span>
+                    <span class="tag">Fixed Partitions</span>
+                </div>
+            </div>
+            <div class="hero-stats" id="heroStats"></div>
+        </header>
+
+        <section class="panel control-panel">
+            <div class="panel-heading">
+                <div>
+                    <p class="section-kicker">Mission Control</p>
+                    <h2>Control Panel</h2>
+                </div>
+                <p class="section-description">
+                    Use the controls below to reset the simulator, run one Round Robin slice, or launch a full demo mode for live presentation.
+                </p>
+            </div>
+
+            <div class="control-layout">
+                <div class="control-card">
+                    <label class="field">
+                        <span>Time Quantum</span>
+                        <div class="field-inline">
+                            <input id="quantumInput" type="number" min="1" value="2">
+                            <button id="saveQuantumBtn" class="button ghost-button" type="button">Apply Quantum</button>
+                        </div>
+                    </label>
+                    <div class="button-grid">
+                        <button id="resetBtn" class="button" type="button">Reset Simulation</button>
+                        <button id="loadSampleBtn" class="button ghost-button" type="button">Load Sample Processes</button>
+                        <button id="stepBtn" class="button" type="button">Run One Scheduling Step</button>
+                        <button id="demoBtn" class="button accent-button" type="button">Run Full Scheduling Demo</button>
+                    </div>
+                </div>
+
+                <div class="control-card quick-actions">
+                    <p class="field-label">Quick Actions</p>
+                    <div class="button-grid compact">
+                        <button id="allocateBtn" class="button ghost-button" type="button">Allocate Memory</button>
+                        <button id="releaseBtn" class="button ghost-button" type="button">Release Completed Processes</button>
+                        <button id="processPrintBtn" class="button ghost-button" type="button">Process Next Print Job</button>
+                    </div>
+                    <div class="legend-row">
+                        <span class="legend-chip ready">Ready</span>
+                        <span class="legend-chip running">Running</span>
+                        <span class="legend-chip waiting">Waiting</span>
+                        <span class="legend-chip terminated">Terminated</span>
+                    </div>
+                </div>
+
+                <div class="notice-card" id="noticeCard" data-tone="info">
+                    <div class="pulse-dot" aria-hidden="true"></div>
+                    <div>
+                        <p class="field-label">System Feed</p>
+                        <p id="systemMessage">Loading simulator state...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <main class="dashboard-grid">
+            <section class="panel process-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="section-kicker">Module 01</p>
+                        <h2>Process Manager</h2>
+                    </div>
+                    <p class="section-description">
+                        Tracks PID, burst time, remaining time, memory requirement, waiting time, turnaround time, and process state.
+                    </p>
+                </div>
+                <div class="table-wrap">
+                    <table class="process-table">
+                        <thead>
+                            <tr>
+                                <th>PID</th>
+                                <th>Name</th>
+                                <th>Burst</th>
+                                <th>Remaining</th>
+                                <th>Memory</th>
+                                <th>State</th>
+                                <th>Waiting</th>
+                                <th>Turnaround</th>
+                                <th>Partition</th>
+                            </tr>
+                        </thead>
+                        <tbody id="processTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel scheduler-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="section-kicker">Module 02</p>
+                        <h2>CPU Scheduler</h2>
+                    </div>
+                    <p class="section-description">
+                        Round Robin distributes CPU time fairly using a configurable time quantum and records the execution timeline.
+                    </p>
+                </div>
+
+                <div class="scheduler-strip">
+                    <div class="subpanel">
+                        <div class="subpanel-header">
+                            <h3>Ready Queue</h3>
+                            <span class="mini-label">FIFO order</span>
+                        </div>
+                        <div class="token-row" id="readyQueue"></div>
+                    </div>
+                    <div class="subpanel">
+                        <div class="subpanel-header">
+                            <h3>Execution Order</h3>
+                            <span class="mini-label">Recorded slices</span>
+                        </div>
+                        <div class="token-row" id="executionOrder"></div>
+                    </div>
+                </div>
+
+                <div class="scheduler-highlights" id="schedulerHighlights"></div>
+
+                <div class="subpanel gantt-panel">
+                    <div class="subpanel-header">
+                        <h3>Web Gantt Chart</h3>
+                        <span class="mini-label">CPU timeline</span>
+                    </div>
+                    <div class="gantt-strip" id="ganttChart"></div>
+                    <div class="gantt-times" id="ganttTimes"></div>
+                </div>
+            </section>
+
+            <section class="panel memory-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="section-kicker">Module 03</p>
+                        <h2>Memory Manager</h2>
+                    </div>
+                    <p class="section-description">
+                        Uses fixed partitions and first-fit allocation. Processes without a suitable partition stay in the Waiting state.
+                    </p>
+                </div>
+                <div class="partition-grid" id="memoryPartitions"></div>
+                <div class="subpanel">
+                    <div class="subpanel-header">
+                        <h3>Waiting For Memory</h3>
+                        <span class="mini-label">Allocation watchlist</span>
+                    </div>
+                    <div id="memoryWaitingList" class="stack-list"></div>
+                </div>
+            </section>
+
+            <section class="panel file-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="section-kicker">Module 04</p>
+                        <h2>File System</h2>
+                    </div>
+                    <p class="section-description">
+                        Simulates file creation, deletion, listing, and viewing through an in-memory dictionary instead of real disk access.
+                    </p>
+                </div>
+
+                <form id="fileForm" class="form-grid">
+                    <label class="field">
+                        <span>File Name</span>
+                        <input id="fileNameInput" type="text" placeholder="system_report.txt" required>
+                    </label>
+                    <label class="field field-wide">
+                        <span>Contents</span>
+                        <textarea id="fileContentInput" rows="4" placeholder="Type the simulated file contents here..."></textarea>
+                    </label>
+                    <button class="button accent-button" type="submit">Create File</button>
+                </form>
+
+                <div class="subpanel file-browser">
+                    <div class="subpanel-header">
+                        <h3>Stored Files</h3>
+                        <span class="mini-label">In-memory only</span>
+                    </div>
+                    <div id="fileList" class="stack-list"></div>
+                </div>
+
+                <div class="subpanel viewer-panel">
+                    <div class="subpanel-header">
+                        <h3>File Viewer</h3>
+                        <span class="mini-label" id="viewerLabel">Select a file</span>
+                    </div>
+                    <pre id="fileViewer" class="viewer-content">Select a file from the list to display its contents.</pre>
+                </div>
+            </section>
+
+            <section class="panel printer-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="section-kicker">Module 05</p>
+                        <h2>Printer Queue / I/O Spooler</h2>
+                    </div>
+                    <p class="section-description">
+                        Demonstrates simple spooling by storing print jobs in a FIFO queue and processing them one at a time.
+                    </p>
+                </div>
+
+                <form id="printJobForm" class="form-grid">
+                    <label class="field">
+                        <span>Document Name</span>
+                        <input id="printNameInput" type="text" placeholder="daily_summary.txt">
+                    </label>
+                    <label class="field">
+                        <span>Submitted By</span>
+                        <select id="printSourceSelect"></select>
+                    </label>
+                    <label class="field field-wide">
+                        <span>Print Content</span>
+                        <textarea id="printContentInput" rows="4" placeholder="Enter the text to spool to the printer..."></textarea>
+                    </label>
+                    <button class="button accent-button" type="submit">Add Print Job</button>
+                </form>
+
+                <div class="queue-columns">
+                    <div class="subpanel">
+                        <div class="subpanel-header">
+                            <h3>Pending Queue</h3>
+                            <span class="mini-label">FIFO jobs</span>
+                        </div>
+                        <div id="printerQueue" class="stack-list"></div>
+                    </div>
+                    <div class="subpanel">
+                        <div class="subpanel-header">
+                            <h3>Completed Jobs</h3>
+                            <span class="mini-label">Recently printed</span>
+                        </div>
+                        <div id="completedPrintJobs" class="stack-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel summary-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="section-kicker">Module 06</p>
+                        <h2>Summary & Statistics</h2>
+                    </div>
+                    <p class="section-description">
+                        Gives a presentation-friendly overview of performance metrics, system state, and recent simulator activity.
+                    </p>
+                </div>
+
+                <div class="summary-stats" id="summaryStats"></div>
+
+                <div class="summary-grid">
+                    <div class="subpanel">
+                        <div class="subpanel-header">
+                            <h3>Recent Activity</h3>
+                            <span class="mini-label">Simulation feed</span>
+                        </div>
+                        <div id="activityFeed" class="activity-feed"></div>
+                    </div>
+                    <div class="subpanel">
+                        <div class="subpanel-header">
+                            <h3>Course Requirement Map</h3>
+                            <span class="mini-label">Visible in the UI</span>
+                        </div>
+                        <div class="requirement-list">
+                            <div class="requirement-item">
+                                <strong>Process Management:</strong> Process table with PID, burst time, memory need, waiting time, turnaround time, and states.
+                            </div>
+                            <div class="requirement-item">
+                                <strong>CPU Scheduling:</strong> Round Robin controls, execution order, averages, and Gantt chart timeline.
+                            </div>
+                            <div class="requirement-item">
+                                <strong>Memory Management:</strong> Fixed partitions, waiting list, allocation, and release behavior.
+                            </div>
+                            <div class="requirement-item">
+                                <strong>File System:</strong> Create, delete, list, and display file contents using in-memory storage.
+                            </div>
+                            <div class="requirement-item">
+                                <strong>I/O Spooling:</strong> Add jobs to a printer queue and process them one at a time.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

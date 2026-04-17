@@ -1,0 +1,231 @@
+SIMPLE OPERATING SYSTEM SIMULATOR
+STEP-BY-STEP DEMO GUIDE
+
+PURPOSE
+This guide is a simple presentation script for demonstrating the web-based
+Simple Operating System Simulator during a live class presentation.
+
+============================================================
+1. BEFORE THE DEMO
+============================================================
+1. Open a terminal in the project folder.
+2. Install dependencies if needed:
+   pip install -r requirements.txt
+3. Run the Flask app:
+   python app.py
+4. Open the browser at:
+   http://127.0.0.1:5000
+5. Make sure the dashboard is fully loaded before presenting.
+
+Suggested line:
+"This project is a web-based version of my Simple Operating System Simulator.
+ It demonstrates process management, CPU scheduling, memory management,
+ file system simulation, and printer spooling in one interactive dashboard."
+
+============================================================
+2. INTRODUCE THE DASHBOARD
+============================================================
+Point to the main sections on the screen:
+- Hero / title section
+- Control Panel
+- Process Manager
+- CPU Scheduler
+- Memory Manager
+- File System
+- Printer Queue / I/O Spooler
+- Summary and Statistics
+
+Suggested line:
+"Instead of showing everything only in a terminal, I rebuilt the system as a
+ web dashboard so each operating system concept is easier to see and explain."
+
+============================================================
+3. SHOW THE CONTROL PANEL
+============================================================
+1. Point to the Time Quantum field.
+2. Explain that the default quantum is 2 for Round Robin scheduling.
+3. Point to these buttons:
+   - Reset Simulation
+   - Load Sample Processes
+   - Run One Scheduling Step
+   - Run Full Scheduling Demo
+   - Allocate Memory
+   - Release Completed Processes
+
+Suggested line:
+"The control panel lets me reset the simulator, run scheduling step by step,
+ or run the full demo automatically for presentation."
+
+============================================================
+4. PROCESS MANAGEMENT DEMO
+============================================================
+1. Go to the Process Manager panel.
+2. Explain the table columns:
+   - PID
+   - Name
+   - Burst Time
+   - Remaining Time
+   - Memory Requirement
+   - State
+   - Waiting Time
+   - Turnaround Time
+   - Assigned Partition
+3. Point out that the system begins with preloaded sample processes.
+4. Explain the process states:
+   - Ready
+   - Running
+   - Waiting
+   - Terminated
+
+Suggested line:
+"This table represents the process control information that an operating
+ system tracks while jobs move through different states."
+
+============================================================
+5. MEMORY MANAGEMENT DEMO
+============================================================
+1. Move to the Memory Manager panel.
+2. Explain that the system uses fixed partitions:
+   - 64 MB
+   - 64 MB
+   - 128 MB
+3. Show that processes are only allowed to run if memory is allocated.
+4. If a process does not fit, explain that it stays in the Waiting state.
+5. Point to the memory cards and waiting list.
+
+Suggested line:
+"This demonstrates fixed-partition memory management. If no suitable partition
+ is available, the process cannot continue and remains waiting."
+
+============================================================
+6. STEP-BY-STEP CPU SCHEDULING DEMO
+============================================================
+1. Click "Reset Simulation" first.
+2. Click "Run One Scheduling Step".
+3. Show what changes:
+   - one process becomes Running
+   - remaining time decreases
+   - execution order updates
+   - Gantt chart adds a new segment
+   - waiting time changes for the other processes
+4. Click "Run One Scheduling Step" again.
+5. Explain that Round Robin gives CPU time in small slices, then rotates.
+
+Suggested line:
+"The CPU scheduler uses Round Robin. Each process gets a fixed time slice,
+ then it goes back to the ready queue if it still has remaining burst time."
+
+============================================================
+7. GANTT CHART DEMO
+============================================================
+1. Point to the Gantt chart in the CPU Scheduler panel.
+2. Explain that each block represents one CPU time slice.
+3. Show the process label and start/end time on each segment.
+4. Point to the execution order and average statistics.
+
+Suggested line:
+"The Gantt chart makes the scheduling behavior easier to visualize because
+ we can see exactly which process used the CPU and for how long."
+
+============================================================
+8. FULL DEMO MODE
+============================================================
+1. Click "Reset Simulation".
+2. Click "Run Full Scheduling Demo".
+3. Let the simulation progress automatically.
+4. Explain these changes while it runs:
+   - processes move from Ready to Running
+   - some processes terminate
+   - memory is released automatically after completion
+   - waiting processes can become Ready when memory becomes free
+5. Wait until all processes are terminated.
+
+Suggested line:
+"Demo mode is useful during presentation because it shows the complete
+ scheduling flow automatically from start to finish."
+
+============================================================
+9. FILE SYSTEM DEMO
+============================================================
+1. Go to the File System panel.
+2. In the file form, create a sample file.
+   Example file name:
+   demo_notes.txt
+3. Enter sample content.
+   Example:
+   This is a simulated file stored only in memory.
+4. Click "Create File".
+5. In the file list, click "View Contents".
+6. Show the file viewer.
+7. If needed, click "Delete File" to demonstrate file removal.
+
+Suggested line:
+"This is an in-memory file system, so it demonstrates basic file operations
+ without using a real database or real disk storage."
+
+============================================================
+10. PRINTER SPOOLER DEMO
+============================================================
+1. Go to the Printer Queue / I/O Spooler panel.
+2. Add a sample print job.
+   Example document name:
+   summary_report.txt
+3. Enter sample print content.
+4. Choose a source such as User Console or a process.
+5. Click "Add Print Job".
+6. Show that the job appears in the queue.
+7. Click "Process Next Print Job".
+8. Show that it moves from pending to completed.
+
+Suggested line:
+"This demonstrates I/O spooling. Print jobs are placed in a FIFO queue and
+ processed one at a time instead of being handled immediately."
+
+============================================================
+11. SUMMARY PANEL DEMO
+============================================================
+1. Go to the Summary and Statistics panel.
+2. Point out:
+   - average waiting time
+   - average turnaround time
+   - throughput
+   - completion rate
+   - recent activity log
+3. Explain that these values summarize system performance.
+
+Suggested line:
+"The summary panel helps evaluate the results of the scheduling algorithm and
+ gives a quick overview of how the simulator performed."
+
+============================================================
+12. ENDING THE PRESENTATION
+============================================================
+Suggested closing line:
+"In conclusion, this project demonstrates the major operating system concepts
+ required in the course: process management, Round Robin scheduling, fixed
+ memory partitions, file system simulation, and printer spooling. Converting
+ it from terminal to web made it easier to present, more interactive, and
+ more visually clear."
+
+============================================================
+13. QUICK DEMO ORDER IF YOU ARE SHORT ON TIME
+============================================================
+Use this short version:
+1. Introduce dashboard sections
+2. Show process table and memory partitions
+3. Run one scheduling step
+4. Show Gantt chart
+5. Run full demo mode
+6. Create one file
+7. Add and process one print job
+8. End on the Summary panel
+
+============================================================
+14. BACKUP PLAN IF SOMETHING GOES WRONG
+============================================================
+If the simulation gets messy during presentation:
+1. Click "Reset Simulation"
+2. Click "Load Sample Processes"
+3. Start the demo again from the initial state
+
+This keeps the presentation consistent and easy to recover.
