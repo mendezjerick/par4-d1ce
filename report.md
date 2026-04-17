@@ -1,179 +1,242 @@
 # Simple Operating System Simulator Report
 
-## Program Description
-The **Simple Operating System Simulator** is a web-based final project built to demonstrate core Operating Systems concepts in a clear, beginner-friendly, and visually polished way. It is a rebuilt version of the original terminal demo, but now presented as a browser dashboard using **Flask**, **HTML**, **CSS**, and **JavaScript**.
+## Project Description
+The Simple Operating System Simulator is a web-based final project for an Operating Systems course. It is built with Flask, HTML, CSS, and JavaScript and is designed to demonstrate major OS concepts through an interactive browser experience.
 
-The simulator keeps the same academic purpose as the original project while improving usability and presentation. It includes:
+The latest version upgrades the project from a web dashboard into a literal desktop operating system simulation. The browser now opens into a cyberpunk desktop shell with wallpapers, desktop icons, a taskbar, a launcher menu, and separate windowed applications.
 
-- process management
-- Round Robin CPU scheduling
-- fixed-partition memory management
-- an in-memory file system
-- printer queue / I/O spooling
-- step-by-step and automatic demo controls
+The visual direction remains inspired by VA-11 HALL-A:
+- dark moody background
+- neon pink, cyan, purple, magenta, and blue accents
+- glowing glass-like panels
+- retro-futuristic desktop atmosphere
 
-The interface uses a **VA-11 HALL-A inspired cyberpunk aesthetic** with dark panels, neon highlights, glowing borders, and a futuristic dashboard layout to make the project more engaging during live presentation and easier to capture in screenshots.
+## Upgrade Summary
+The upgraded version adds a full desktop shell on top of the existing simulator logic:
+- boot screen before entering the desktop
+- desktop wallpaper presets
+- desktop icons for installed apps
+- taskbar with open window indicators
+- launcher / start menu
+- multiple application windows with focus, minimize, maximize, close, and drag behavior
+- settings app for wallpaper and scheduler defaults
 
-## OS Concepts Used
-This project demonstrates several important Operating Systems concepts:
+This change makes the application feel like a small operating system running inside the browser instead of a typical single-page website.
 
-- **Process Management** through process records and state transitions
-- **CPU Scheduling** through the Round Robin algorithm
-- **Memory Management** through fixed partitions and allocation/deallocation
-- **File System Concepts** through in-memory file operations
-- **I/O Management** through printer queue spooling
+## Desktop Shell Design
+The shell is intentionally not a Windows clone. It uses a generic desktop interaction model while keeping the same cyberpunk aesthetic.
 
-Each concept is shown visually in its own panel so that the relationship between modules is easy to explain.
+Main shell elements:
+- full-screen desktop background
+- desktop icon area
+- taskbar
+- clock and status tray
+- launcher menu
+- application window layer
 
-## Process Management Explanation
-The simulator starts with four predefined processes:
+This shell acts as the user-facing environment, while each installed app demonstrates an Operating Systems concept.
 
-- `P1 - Mix Compiler`
-- `P2 - Neon Renderer`
-- `P3 - Receipt Sync`
-- `P4 - Night Backup`
+## Process Management
+The Process Manager app supports full process CRUD operations.
 
-Each process contains the required fields:
-
+Each process includes:
 - PID
 - process name
+- arrival time
 - burst time
 - remaining time
+- priority
 - memory requirement
 - state
 - waiting time
 - turnaround time
+- completion time
 
-The system tracks these process states:
+Supported actions:
+- add process
+- edit process
+- delete process
+- reset runtime
+- generate sample processes
 
-- **Ready** - the process has memory and is waiting for CPU time
-- **Running** - the process is currently using the CPU
-- **Waiting** - the process cannot continue because memory is not available
-- **Terminated** - the process has finished execution
+This allows the process list to change dynamically during the demonstration instead of staying hardcoded.
 
-The Process Manager panel shows all of this data in a structured table, making it easy to discuss how processes are represented inside an operating system.
+## CPU Scheduling Algorithms
+The CPU Scheduler app supports the following algorithms:
+- FCFS
+- SJF Non-Preemptive
+- SRTF
+- Priority Non-Preemptive
+- Priority Preemptive
+- Round Robin
+- Multilevel Queue Scheduling
+- Multilevel Feedback Queue Scheduling
 
-## Round Robin Scheduling Explanation
-The CPU scheduling module uses the **Round Robin** algorithm.
-
-- Default time quantum: **2**
-- The quantum can be changed in the web interface
-- One scheduling step runs exactly one time slice
-- Demo mode automatically keeps stepping until the sample run finishes
-
-Round Robin works as follows:
-
-1. A process from the ready queue is selected.
-2. It runs for up to the configured time quantum.
-3. If it is not finished, it returns to the Ready queue.
-4. If it finishes, it moves to the Terminated state.
-
-The simulator records:
-
+Displayed scheduling results:
 - execution order
 - waiting time
 - turnaround time
+- completion time
 - average waiting time
 - average turnaround time
+- throughput
+- web-based Gantt chart
+- ready queue view
 
-The web dashboard also includes a **Gantt chart** that displays the order and duration of CPU slices as a horizontal timeline.
+This makes it easy to compare algorithm behavior inside a visual app window.
 
-## Memory Management Explanation
-The simulator uses **fixed memory partitions**:
+## Memory Management
+The Memory Manager app keeps the project educational while making allocation more visible.
 
-```text
-[64, 64, 128] MB
-```
+Implemented features:
+- fixed partition simulation
+- optional variable partition mode
+- allocation and deallocation display
+- waiting state when memory is unavailable
+- memory usage indicators
+- fragmentation indicators
 
-Each process has a memory requirement. The memory manager uses a simple **first-fit allocation** approach:
+This helps explain how memory availability affects process readiness and completion.
 
-- If a free partition is large enough, the process is allocated there.
-- If no partition fits, the process stays in the **Waiting** state.
-- When a process terminates, its partition is automatically freed.
-- Waiting processes are checked again when memory becomes available.
+## Disk Management
+The project now includes a dedicated Disk Manager app.
 
-The web version represents memory as a set of cards and bars, showing:
+### Disk Scheduling
+Supported algorithms:
+- FCFS
+- SSTF
+- SCAN
+- C-SCAN
+- LOOK
+- C-LOOK
 
-- partition number
-- partition size
-- whether the partition is occupied
-- which process is using it
-- used and free memory inside each partition
+Displayed results:
+- request list
+- service order
+- head path
+- total head movement
 
-This makes the memory concept easier to explain than a plain text console output.
+### Storage Simulation
+The Disk Manager also includes a simplified block-based storage model:
+- total block capacity
+- used blocks
+- free blocks
+- file-to-block mapping
+- storage block visualization
 
-## File System Explanation
-The project includes a simple **in-memory file system**, meaning it does not create or delete real operating system files as part of the simulation itself.
+This remains educational and is not meant to behave like real low-level storage hardware.
+
+## File System Simulation
+The File Explorer app expands the in-memory file system and gives it a desktop-style presentation.
 
 Supported operations:
-
 - create file
+- edit file
 - delete file
-- list files
 - display file contents
+- list files
+- show file size
+- group files by folder
+- show timestamps
 
-Each file stores:
+The explorer window includes:
+- folder sidebar
+- file list
+- content viewer
+- file form actions
 
-- file name
-- contents
-- size
+All files remain in memory only.
 
-The File System panel includes a file creation form, a file list, and a file viewer. This demonstrates the idea of file storage and retrieval while keeping the implementation safe and simple.
+## I/O Simulation
+The Printer Queue app simulates a simple spooler.
 
-## I/O Spooling Explanation
-The simulator includes a **printer spooler** to demonstrate I/O spooling.
+Supported features:
+- add print job
+- view pending jobs
+- process next job
+- view completed jobs
 
-Supported actions:
+This demonstrates FIFO queue behavior and basic spooling as an Operating Systems concept.
 
-- add a print job
-- view queued print jobs
-- process the next job
-- review recently completed jobs
+## Built-In Mini App
+To make the desktop feel more like a complete operating system, the project includes one small built-in app:
+- Guess the Number
 
-The spooler uses **FIFO order**, which means the first job added is the first one processed. This models how operating systems often buffer output jobs before sending them to a device.
+The app is intentionally simple so it feels like a default installed program without distracting from the academic simulation.
 
-## Web Implementation Overview
-The web version uses a simple client-server structure:
+## System Monitor And Settings
+The System Monitor app provides a desktop-style overview of the simulator:
+- shell clock
+- active process
+- memory usage
+- storage usage
+- activity feed
+- summary metrics
 
-- **Flask backend** stores the simulator state in Python objects
-- **HTML/CSS frontend** builds the dashboard layout and cyberpunk design
-- **JavaScript** sends `fetch()` requests to Flask routes and updates the page dynamically
+The Settings app provides shell-level controls:
+- wallpaper selection
+- reduced motion toggle
+- scheduler defaults
+- system reset
+- sample data loading
 
-Important implementation details:
+These apps help the simulator feel more like a literal operating system environment.
 
-- No database is used
-- All simulator data is stored in memory
-- The scheduler state is deterministic for presentation
-- Completed processes free memory automatically
-- The page updates without reloading when actions are performed
+## Educational Value
+This project demonstrates several major OS topics inside one coherent interface:
+- process management
+- CPU scheduling
+- memory allocation
+- disk scheduling
+- storage usage
+- file management
+- I/O spooling
+- desktop shell concepts
 
-Main files:
-
-- `app.py` - backend logic and API routes
-- `templates/index.html` - dashboard layout
-- `static/style.css` - interface styling
-- `static/script.js` - frontend interactivity
+The browser-based desktop makes the project easier to present because the user can switch between apps just like a mini operating system.
 
 ## Sample Output / Screenshot Placeholders
-### Screenshot Placeholder 1: Hero Dashboard
-> Insert screenshot of the main web dashboard header and control panel here.
 
-### Screenshot Placeholder 2: Process Manager
-> Insert screenshot of the process table with different process states here.
+### Screenshot Placeholder 1
+> Boot screen before entering the cyberpunk desktop
 
-### Screenshot Placeholder 3: CPU Scheduler and Gantt Chart
-> Insert screenshot of the scheduler panel after several Round Robin steps here.
+### Screenshot Placeholder 2
+> Desktop shell with wallpaper, icons, taskbar, and launcher
 
-### Screenshot Placeholder 4: Memory Manager
-> Insert screenshot of the fixed partition memory cards here.
+### Screenshot Placeholder 3
+> Process Manager window with editable process list
 
-### Screenshot Placeholder 5: File System Panel
-> Insert screenshot of the file list and file viewer here.
+### Screenshot Placeholder 4
+> CPU Scheduler window showing selected algorithm and Gantt chart
 
-### Screenshot Placeholder 6: Printer Queue / I-O Spooler
-> Insert screenshot of the printer queue and completed jobs here.
+### Screenshot Placeholder 5
+> Memory Manager window showing partitions and waiting processes
+
+### Screenshot Placeholder 6
+> Disk Manager window showing head movement and block map
+
+### Screenshot Placeholder 7
+> File Explorer window with folders and file viewer
+
+### Screenshot Placeholder 8
+> Printer Queue window with pending and completed jobs
+
+### Screenshot Placeholder 9
+> Settings window with wallpaper presets
+
+### Screenshot Placeholder 10
+> Mini Game window opened as a built-in desktop app
+
+## Simplified Assumptions
+- The desktop shell is only a browser simulation.
+- All simulator state is stored in memory while Flask is running.
+- The file system is not connected to the real computer file system.
+- Storage blocks are educational and simplified.
+- Memory behavior is a teaching model, not a real operating system allocator.
+- Scheduling uses integer time units.
+- MLQ and MLFQ are simplified academic versions.
 
 ## Conclusion
-The web-based **Simple Operating System Simulator** successfully demonstrates the required Operating Systems concepts in a form that is more visual, interactive, and presentation-friendly than the original terminal version.
+The upgraded Simple Operating System Simulator successfully preserves the original cyberpunk theme while transforming the interface into a literal desktop operating system simulation in the browser.
 
-It still satisfies the original academic requirements, but the browser dashboard makes the simulation easier to understand, easier to demo live, and more impressive in screenshots for the final report and presentation. The project remains simple enough for student explanation while providing a polished and memorable user experience.
+The result is visually stronger, more immersive, and more impressive for a final project presentation, while still remaining compact, understandable, and centered on Operating Systems concepts.

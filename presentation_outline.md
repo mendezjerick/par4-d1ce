@@ -1,56 +1,78 @@
 # Presentation Outline: Simple Operating System Simulator
 
 ## Slide 1 - Introduction
-- Project title: **Simple Operating System Simulator**
-- Final project rebuilt from a terminal demo into a web-based dashboard
-- Theme: VA-11 HALL-A inspired cyberpunk operating console
+- Project title: Simple Operating System Simulator
+- Web-based Operating Systems final project
+- Built with Flask, HTML, CSS, and JavaScript
 
 ## Slide 2 - Objectives
-- Demonstrate major Operating Systems concepts in one project
-- Keep the simulator beginner-friendly and easy to explain
-- Improve presentation quality through a visual web interface
+- Demonstrate major OS concepts in one project
+- Keep the system educational and explainable
+- Present the simulator inside a distinctive cyberpunk desktop shell
 
-## Slide 3 - Why Convert from Terminal to Web
-- The terminal version worked but was harder to present live
-- A web dashboard makes each module visible at the same time
-- Better for screenshots, reports, and classroom demonstrations
-- Easier to show process states, memory allocation, and queue activity clearly
+## Slide 3 - Existing System Overview
+- Earlier version already had process logic, scheduling, memory, files, printer queue, and cyberpunk styling
+- Main limitation: it still felt like a dashboard website
+- Upgrade goal: turn it into a literal desktop operating system simulation
 
-## Slide 4 - Process Management
-- Each process includes PID, name, burst time, remaining time, memory need, state, waiting time, and turnaround time
-- The simulator tracks Ready, Running, Waiting, and Terminated states
-- The web table makes state changes easy to follow
+## Slide 4 - Desktop Shell Upgrade
+- Added boot screen
+- Added wallpapered desktop
+- Added desktop icons
+- Added taskbar and launcher
+- Added separate app windows
+- Added focus, minimize, maximize, close, and drag behavior
 
-## Slide 5 - CPU Scheduling
-- Scheduling algorithm: **Round Robin**
-- Default time quantum: **2**
-- Supports one-step execution and full demo mode
-- Shows execution order and a web-based Gantt chart
+## Slide 5 - Process Management
+- Users can add, edit, delete, reset, and generate processes
+- Each process stores PID, arrival, burst, priority, memory, state, waiting time, turnaround time, and completion time
+- Process Manager behaves like a Task Manager style desktop app
 
-## Slide 6 - Memory Management
-- Uses fixed partitions: `64 MB`, `64 MB`, `128 MB`
-- First-fit allocation is applied
-- Processes wait when no partition can fit them
-- Memory is released automatically when a process terminates
+## Slide 6 - CPU Scheduling Algorithms
+- FCFS
+- SJF
+- SRTF
+- Priority Non-Preemptive
+- Priority Preemptive
+- Round Robin
+- MLQ
+- MLFQ
+- Gantt chart and average metrics shown inside the Scheduler app
 
-## Slide 7 - File System Simulation
-- Uses an in-memory file system only
-- Supports create, list, display, and delete file operations
-- Demonstrates file storage concepts without real disk access
+## Slide 7 - Memory Management
+- Fixed partition simulation retained
+- Variable partition mode added
+- Allocation and deallocation displayed visually
+- Waiting state and fragmentation indicators shown in Memory Manager
 
-## Slide 8 - I/O Simulation
-- Simulates a printer spooler
-- Print jobs are stored in a FIFO queue
-- Jobs can be added by the user or on behalf of processes
-- The next print job is processed one at a time
+## Slide 8 - Disk Management
+- Disk scheduling algorithms: FCFS, SSTF, SCAN, C-SCAN, LOOK, C-LOOK
+- User enters requests and head position
+- Service order and total head movement displayed
+- Storage block map shows used and free space
 
-## Slide 9 - Demo Highlights
-- Show the control panel and quantum setting
-- Run one scheduling step and explain Ready/Running transitions
-- Run full demo mode to complete all processes
-- Show memory release, file viewer, and printer queue updates
+## Slide 9 - File System And I-O
+- File Explorer supports create, edit, delete, view, folders, and timestamps
+- Files remain in memory only
+- Printer Queue demonstrates FIFO spooling
+- File actions also affect simulated storage usage
 
-## Slide 10 - Conclusion
-- The project satisfies the original assignment requirements
-- The web version is easier to explain, demo, and document
-- The cyberpunk dashboard gives the project a stronger final presentation impact
+## Slide 10 - Built-In Apps And Settings
+- Mini Game acts like a default installed application
+- System Monitor shows shell metrics and recent activity
+- Settings app controls wallpaper, shell motion, and scheduler defaults
+
+## Slide 11 - Demo Flow
+- Show boot screen and enter desktop
+- Open apps from desktop icons and launcher
+- Add or edit processes
+- Select a scheduling algorithm and run the simulation
+- Show memory behavior
+- Show disk scheduling and storage map
+- Open File Explorer and Printer Queue
+- Change wallpaper in Settings
+
+## Slide 12 - Conclusion
+- The project now feels like a browser-based desktop OS, not a normal dashboard
+- Core Operating Systems concepts were preserved and expanded
+- The final result is polished, explainable, and presentation-ready

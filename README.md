@@ -1,121 +1,210 @@
 # Simple Operating System Simulator
 
-## Overview
-This project is a web-based version of the **Simple Operating System Simulator** final project.  
-It converts the original terminal demo into a browser dashboard while preserving the same academic goals:
+## Project Overview
+This project is a Flask-based web application that simulates a small operating system inside the browser. The latest upgrade turns the interface into a literal desktop shell instead of a normal dashboard website.
 
-- process management
-- Round Robin CPU scheduling
-- fixed-partition memory management
-- in-memory file system operations
-- printer queue / I/O spooling
+When the app loads, the user enters a neon cyberpunk desktop inspired by VA-11 HALL-A. The shell includes:
+- boot screen
+- desktop wallpaper
+- desktop icons
+- taskbar
+- launcher menu
+- windowed applications
+- live clock and system status area
 
-The new interface uses a **VA-11 HALL-A inspired cyberpunk control-console design** with neon panels, dark backgrounds, glowing accents, and a presentation-friendly layout.
+Inside that desktop shell, the installed apps demonstrate classic Operating Systems concepts such as process management, CPU scheduling, memory allocation, disk scheduling, file management, and I/O spooling.
 
-## Features
-- Browser-based single-page dashboard built with Flask, HTML, CSS, and JavaScript
-- Preloaded sample processes for a repeatable classroom demo
-- Round Robin scheduling with configurable time quantum
-- Step-by-step scheduling and automatic demo mode
-- Web Gantt chart for execution order and CPU timeline
-- Fixed memory partitions with visual memory cards
-- In-memory file creation, listing, display, and deletion
-- Printer queue simulation with FIFO spooling
-- Summary statistics for waiting time, turnaround time, and throughput
+## Desktop Shell Features
+- Full desktop operating system style interface in the browser
+- Cyberpunk wallpaper presets with VA-11 HALL-A inspired color direction
+- Desktop icons for installed apps
+- Bottom taskbar with open app indicators
+- Start-style launcher menu
+- Window manager with focus, minimize, maximize, close, and layered z-index behavior
+- Window dragging for desktop-style interaction
+- Settings app for wallpaper and simulator defaults
 
-## Tech Stack
-- **Frontend:** HTML, CSS, JavaScript
-- **Backend:** Python, Flask
-- **Storage:** In-memory Python data structures only
+## Supported Installed Apps
+- System Monitor
+- Process Manager
+- CPU Scheduler
+- Memory Manager
+- Disk Manager
+- File Explorer
+- Printer Queue
+- Mini Game
+- Settings
+
+## Process Management Features
+- Add new processes
+- Edit existing processes
+- Delete processes
+- Reset process runtime
+- Generate sample processes
+- Track PID, name, arrival time, burst time, remaining time, priority, memory requirement, state, waiting time, turnaround time, and completion time
+
+## Supported CPU Scheduling Algorithms
+- First Come First Served
+- Shortest Job First (Non-Preemptive)
+- Shortest Remaining Time First
+- Priority Scheduling (Non-Preemptive)
+- Priority Scheduling (Preemptive)
+- Round Robin
+- Multilevel Queue Scheduling
+- Multilevel Feedback Queue Scheduling
+
+The scheduler app shows:
+- execution order
+- waiting time
+- turnaround time
+- completion time
+- average waiting time
+- average turnaround time
+- throughput
+- web-based Gantt chart
+
+## Memory Management Features
+- Fixed partition simulation
+- Optional variable partition mode
+- Allocation and deallocation display
+- Waiting processes when memory is unavailable
+- Memory usage indicators
+- Internal and external fragmentation indicators
+
+## Supported Disk Scheduling Algorithms
+- FCFS
+- SSTF
+- SCAN
+- C-SCAN
+- LOOK
+- C-LOOK
+
+The disk app shows:
+- disk request list
+- initial head position
+- service order
+- head path
+- total head movement
+- block-based storage map
+
+## File System Features
+- Create file
+- Edit file
+- Delete file
+- View file contents
+- List files
+- Show file size
+- Group files by folder
+- Show timestamps
+
+The file system is fully in memory. Files also affect the educational disk block map.
+
+## Printer Queue / I-O Simulation
+- Add print jobs
+- View pending queue
+- Process next queued job
+- View completed jobs
+
+This demonstrates simple FIFO spooling behavior.
+
+## Built-In Mini App
+The simulator includes a small default installed app:
+- Guess the Number
+
+Its purpose is to make the shell feel more like a complete mini operating system while keeping the project easy to explain.
 
 ## Installation
 1. Open a terminal in the project folder.
-2. Create a virtual environment if you want an isolated setup:
-
-```bash
-python -m venv .venv
-```
-
-3. Activate the virtual environment:
-
-```bash
-.venv\Scripts\activate
-```
-
-4. Install dependencies:
+2. Create and activate a virtual environment if desired.
+3. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## How to Run Locally
-1. Start the Flask app:
+## Run the Project
+Start the Flask server:
 
 ```bash
 python app.py
 ```
 
-2. Open your browser and visit:
+Then open:
 
 ```text
 http://127.0.0.1:5000
 ```
 
+## How To Use The Desktop Simulator
+1. Start the server and open the browser app.
+2. Wait for the boot screen to finish, then enter the desktop.
+3. Open apps from desktop icons, the taskbar, or the launcher.
+4. Add processes in Process Manager.
+5. Choose a CPU scheduling algorithm in CPU Scheduler and run the simulation.
+6. Inspect memory allocation in Memory Manager.
+7. Run disk scheduling in Disk Manager.
+8. Manage in-memory files in File Explorer.
+9. Add and process jobs in Printer Queue.
+10. Open Settings to change wallpaper and shell defaults.
+11. Launch the Mini Game like a built-in OS app.
+
 ## Project Structure
 ```text
 par4-d1ce/
-├── app.py
-├── os_simulator.py
-├── requirements.txt
-├── README.md
-├── report.md
-├── presentation_outline.md
-├── templates/
-│   └── index.html
-└── static/
-    ├── style.css
-    └── script.js
+|-- app.py
+|-- os_simulator.py
+|-- requirements.txt
+|-- README.md
+|-- report.md
+|-- presentation_outline.md
+|-- templates/
+|   `-- index.html
+`-- static/
+    |-- style.css
+    `-- script.js
 ```
 
 ## File Guide
-- `app.py` - Flask backend, simulator state, and JSON API routes
-- `templates/index.html` - single-page dashboard layout
-- `static/style.css` - cyberpunk VA-11 HALL-A inspired interface styling
-- `static/script.js` - frontend logic, rendering, fetch calls, and demo controls
-- `os_simulator.py` - original terminal-based reference version
-- `report.md` - final project written report
-- `presentation_outline.md` - slide-by-slide presentation outline
+- `app.py`: Flask backend, simulator classes, APIs, and in-memory system state
+- `templates/index.html`: desktop shell layout, launcher, taskbar, and application windows
+- `static/style.css`: cyberpunk desktop styling, wallpapers, taskbar, windows, and panels
+- `static/script.js`: window manager, launcher behavior, wallpaper switching, taskbar logic, and frontend API calls
+- `os_simulator.py`: original command-line version
+- `report.md`: final project report
+- `presentation_outline.md`: presentation plan
 
-## Course Requirement Mapping
-### 1. Process Management
-- Displays PID, name, burst time, remaining time, memory requirement, state, waiting time, and turnaround time
-- Shows states: Ready, Running, Waiting, and Terminated
+## Mapping Features To Operating Systems Concepts
 
-### 2. CPU Scheduling
-- Implements **Round Robin**
-- Default time quantum is **2**, but it can be changed in the dashboard
-- Shows execution order, waiting time, turnaround time, average waiting time, and a web-based Gantt chart
+### Process Management
+- The Process Manager app lets the user create, edit, delete, and inspect processes.
 
-### 3. Memory Management
-- Uses fixed partitions: `64 MB`, `64 MB`, `128 MB`
-- Allocates and deallocates memory visually
-- Keeps processes in **Waiting** when no partition fits
+### CPU Scheduling
+- The CPU Scheduler app compares major scheduling algorithms and visualizes CPU time with a Gantt chart.
 
-### 4. File System Simulation
-- Uses an in-memory dictionary only
-- Supports create, delete, list, and display operations
+### Memory Management
+- The Memory Manager app shows allocation decisions, waiting due to insufficient memory, and fragmentation.
 
-### 5. I/O Spooling
-- Simulates a printer queue
-- Adds print jobs and processes them one at a time using FIFO order
+### Disk Management
+- The Disk Manager app demonstrates head movement algorithms and simple block allocation.
 
-## Why the Web Version Is Better for Presentation
-- Easier to demonstrate live in class because everything is visible in one dashboard
-- Better visuals for screenshots, report documentation, and slides
-- Clearer module separation for explaining OS concepts
-- Step-by-step controls make Round Robin behavior easier to follow than a terminal scroll
+### File System
+- The File Explorer app simulates file and folder operations using in-memory data only.
+
+### I/O Spooling
+- The Printer Queue app shows FIFO job handling.
+
+### Desktop Shell
+- The browser shell simulates the user-facing part of an operating system with windows, launcher, taskbar, settings, and wallpaper management.
+
+## Simplified Assumptions
+- Everything stays in memory while the Flask app is running.
+- The desktop shell is a browser simulation, not a real operating system.
+- Memory and disk behavior are educational approximations.
+- Scheduling uses integer time units.
+- MLQ and MLFQ are simplified classroom versions.
+- The file explorer is not tied to the real host file system.
 
 ## Notes
-- No database is used.
-- No real disk access is required for the simulated file system.
-- The simulator state resets in memory when the Flask server restarts.
+- No database is required.
+- No authentication is used.
+- Restarting the Flask app resets the in-memory simulator state.

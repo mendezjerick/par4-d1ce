@@ -6,304 +6,801 @@
     <title>Simple Operating System Simulator</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body class="wallpaper-dice">
     <div class="backdrop-grid" aria-hidden="true"></div>
-    <div class="app-shell">
-        <header class="panel hero-panel">
-            <div class="hero-copy">
-                <p class="eyebrow">FINAL PROJECT // WEB CONSOLE</p>
-                <h1>Simple Operating System Simulator</h1>
-                <p class="hero-subtitle">
-                    A browser-based cyberpunk operating dashboard inspired by VA-11 HALL-A,
-                    designed to demonstrate process management, CPU scheduling, memory allocation,
-                    file handling, and printer spooling in one clean presentation screen.
-                </p>
-                <div class="hero-tags">
-                    <span class="tag">Flask + Python</span>
-                    <span class="tag">HTML / CSS / JavaScript</span>
-                    <span class="tag">Round Robin Scheduling</span>
-                    <span class="tag">Fixed Partitions</span>
-                </div>
+
+    <section class="boot-screen" id="bootScreen" aria-label="Boot Screen">
+        <div class="boot-card">
+            <p class="eyebrow">BOOT SEQUENCE // CYBERPUNK ACADEMIC OS</p>
+            <h1>Neon District OS</h1>
+            <p class="boot-copy">
+                Initializing scheduler core, memory partitions, disk surface, file explorer,
+                printer spooler, and installed applications.
+            </p>
+            <div class="boot-progress">
+                <div class="boot-progress-bar" id="bootProgressBar"></div>
             </div>
-            <div class="hero-stats" id="heroStats"></div>
-        </header>
-
-        <section class="panel control-panel">
-            <div class="panel-heading">
-                <div>
-                    <p class="section-kicker">Mission Control</p>
-                    <h2>Control Panel</h2>
-                </div>
-                <p class="section-description">
-                    Use the controls below to reset the simulator, run one Round Robin slice, or launch a full demo mode for live presentation.
-                </p>
+            <div class="boot-checklist">
+                <span>PROCESS CORE</span>
+                <span>CPU SCHEDULER</span>
+                <span>MEMORY GRID</span>
+                <span>DISK SURFACE</span>
+                <span>FILE EXPLORER</span>
             </div>
+            <button id="enterDesktopBtn" class="button accent-button" type="button" disabled>Enter Desktop</button>
+        </div>
+    </section>
 
-            <div class="control-layout">
-                <div class="control-card">
-                    <label class="field">
-                        <span>Time Quantum</span>
-                        <div class="field-inline">
-                            <input id="quantumInput" type="number" min="1" value="2">
-                            <button id="saveQuantumBtn" class="button ghost-button" type="button">Apply Quantum</button>
-                        </div>
-                    </label>
-                    <div class="button-grid">
-                        <button id="resetBtn" class="button" type="button">Reset Simulation</button>
-                        <button id="loadSampleBtn" class="button ghost-button" type="button">Load Sample Processes</button>
-                        <button id="stepBtn" class="button" type="button">Run One Scheduling Step</button>
-                        <button id="demoBtn" class="button accent-button" type="button">Run Full Scheduling Demo</button>
-                    </div>
-                </div>
+    <div class="desktop-shell wallpaper-dice" id="desktopShell">
+        <div class="desktop-sheen" aria-hidden="true"></div>
+        <div class="desktop-haze" aria-hidden="true"></div>
 
-                <div class="control-card quick-actions">
-                    <p class="field-label">Quick Actions</p>
-                    <div class="button-grid compact">
-                        <button id="allocateBtn" class="button ghost-button" type="button">Allocate Memory</button>
-                        <button id="releaseBtn" class="button ghost-button" type="button">Release Completed Processes</button>
-                        <button id="processPrintBtn" class="button ghost-button" type="button">Process Next Print Job</button>
-                    </div>
-                    <div class="legend-row">
-                        <span class="legend-chip ready">Ready</span>
-                        <span class="legend-chip running">Running</span>
-                        <span class="legend-chip waiting">Waiting</span>
-                        <span class="legend-chip terminated">Terminated</span>
-                    </div>
-                </div>
+        <aside class="desktop-icons" id="desktopIcons" aria-label="Desktop Icons"></aside>
 
-                <div class="notice-card" id="noticeCard" data-tone="info">
-                    <div class="pulse-dot" aria-hidden="true"></div>
-                    <div>
-                        <p class="field-label">System Feed</p>
-                        <p id="systemMessage">Loading simulator state...</p>
-                    </div>
-                </div>
+        <section class="desktop-widget">
+            <p class="mini-label">Desktop Status</p>
+            <h2>Neon District OS</h2>
+            <div class="widget-divider"></div>
+            <div class="desktop-widget-line">
+                <span>Wallpaper</span>
+                <strong id="desktopWallpaperLabel">Dice</strong>
+            </div>
+            <div class="desktop-widget-line">
+                <span>Scheduler</span>
+                <strong id="activeAlgorithmLabel">Round Robin</strong>
+            </div>
+            <div class="desktop-widget-line">
+                <span>Timeline</span>
+                <strong id="stepCounter">0 / 0</strong>
             </div>
         </section>
 
-        <main class="dashboard-grid">
-            <section class="panel process-panel">
-                <div class="panel-heading">
-                    <div>
-                        <p class="section-kicker">Module 01</p>
-                        <h2>Process Manager</h2>
-                    </div>
-                    <p class="section-description">
-                        Tracks PID, burst time, remaining time, memory requirement, waiting time, turnaround time, and process state.
-                    </p>
-                </div>
-                <div class="table-wrap">
-                    <table class="process-table">
-                        <thead>
-                            <tr>
-                                <th>PID</th>
-                                <th>Name</th>
-                                <th>Burst</th>
-                                <th>Remaining</th>
-                                <th>Memory</th>
-                                <th>State</th>
-                                <th>Waiting</th>
-                                <th>Turnaround</th>
-                                <th>Partition</th>
-                            </tr>
-                        </thead>
-                        <tbody id="processTableBody"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section class="panel scheduler-panel">
-                <div class="panel-heading">
-                    <div>
-                        <p class="section-kicker">Module 02</p>
-                        <h2>CPU Scheduler</h2>
-                    </div>
-                    <p class="section-description">
-                        Round Robin distributes CPU time fairly using a configurable time quantum and records the execution timeline.
-                    </p>
-                </div>
-
-                <div class="scheduler-strip">
-                    <div class="subpanel">
-                        <div class="subpanel-header">
-                            <h3>Ready Queue</h3>
-                            <span class="mini-label">FIFO order</span>
+        <main class="window-layer" id="windowLayer" aria-label="Application Windows">
+            <section class="app-window" id="window-system" data-app="system">
+                <div class="window-frame">
+                    <header class="window-titlebar" data-drag-handle>
+                        <div class="window-title">
+                            <span class="window-app-icon">SYS</span>
+                            <div>
+                                <strong>System Monitor</strong>
+                                <span>Desktop overview and activity feed</span>
+                            </div>
                         </div>
-                        <div class="token-row" id="readyQueue"></div>
-                    </div>
-                    <div class="subpanel">
-                        <div class="subpanel-header">
-                            <h3>Execution Order</h3>
-                            <span class="mini-label">Recorded slices</span>
+                        <div class="window-controls">
+                            <button class="window-control" data-window-action="minimize" data-app="system" type="button">-</button>
+                            <button class="window-control" data-window-action="maximize" data-app="system" type="button">[]</button>
+                            <button class="window-control close" data-window-action="close" data-app="system" type="button">x</button>
                         </div>
-                        <div class="token-row" id="executionOrder"></div>
-                    </div>
-                </div>
-
-                <div class="scheduler-highlights" id="schedulerHighlights"></div>
-
-                <div class="subpanel gantt-panel">
-                    <div class="subpanel-header">
-                        <h3>Web Gantt Chart</h3>
-                        <span class="mini-label">CPU timeline</span>
-                    </div>
-                    <div class="gantt-strip" id="ganttChart"></div>
-                    <div class="gantt-times" id="ganttTimes"></div>
-                </div>
-            </section>
-
-            <section class="panel memory-panel">
-                <div class="panel-heading">
-                    <div>
-                        <p class="section-kicker">Module 03</p>
-                        <h2>Memory Manager</h2>
-                    </div>
-                    <p class="section-description">
-                        Uses fixed partitions and first-fit allocation. Processes without a suitable partition stay in the Waiting state.
-                    </p>
-                </div>
-                <div class="partition-grid" id="memoryPartitions"></div>
-                <div class="subpanel">
-                    <div class="subpanel-header">
-                        <h3>Waiting For Memory</h3>
-                        <span class="mini-label">Allocation watchlist</span>
-                    </div>
-                    <div id="memoryWaitingList" class="stack-list"></div>
-                </div>
-            </section>
-
-            <section class="panel file-panel">
-                <div class="panel-heading">
-                    <div>
-                        <p class="section-kicker">Module 04</p>
-                        <h2>File System</h2>
-                    </div>
-                    <p class="section-description">
-                        Simulates file creation, deletion, listing, and viewing through an in-memory dictionary instead of real disk access.
-                    </p>
-                </div>
-
-                <form id="fileForm" class="form-grid">
-                    <label class="field">
-                        <span>File Name</span>
-                        <input id="fileNameInput" type="text" placeholder="system_report.txt" required>
-                    </label>
-                    <label class="field field-wide">
-                        <span>Contents</span>
-                        <textarea id="fileContentInput" rows="4" placeholder="Type the simulated file contents here..."></textarea>
-                    </label>
-                    <button class="button accent-button" type="submit">Create File</button>
-                </form>
-
-                <div class="subpanel file-browser">
-                    <div class="subpanel-header">
-                        <h3>Stored Files</h3>
-                        <span class="mini-label">In-memory only</span>
-                    </div>
-                    <div id="fileList" class="stack-list"></div>
-                </div>
-
-                <div class="subpanel viewer-panel">
-                    <div class="subpanel-header">
-                        <h3>File Viewer</h3>
-                        <span class="mini-label" id="viewerLabel">Select a file</span>
-                    </div>
-                    <pre id="fileViewer" class="viewer-content">Select a file from the list to display its contents.</pre>
-                </div>
-            </section>
-
-            <section class="panel printer-panel">
-                <div class="panel-heading">
-                    <div>
-                        <p class="section-kicker">Module 05</p>
-                        <h2>Printer Queue / I/O Spooler</h2>
-                    </div>
-                    <p class="section-description">
-                        Demonstrates simple spooling by storing print jobs in a FIFO queue and processing them one at a time.
-                    </p>
-                </div>
-
-                <form id="printJobForm" class="form-grid">
-                    <label class="field">
-                        <span>Document Name</span>
-                        <input id="printNameInput" type="text" placeholder="daily_summary.txt">
-                    </label>
-                    <label class="field">
-                        <span>Submitted By</span>
-                        <select id="printSourceSelect"></select>
-                    </label>
-                    <label class="field field-wide">
-                        <span>Print Content</span>
-                        <textarea id="printContentInput" rows="4" placeholder="Enter the text to spool to the printer..."></textarea>
-                    </label>
-                    <button class="button accent-button" type="submit">Add Print Job</button>
-                </form>
-
-                <div class="queue-columns">
-                    <div class="subpanel">
-                        <div class="subpanel-header">
-                            <h3>Pending Queue</h3>
-                            <span class="mini-label">FIFO jobs</span>
+                    </header>
+                    <div class="window-content">
+                        <div class="window-section">
+                            <div class="panel-heading">
+                                <div>
+                                    <p class="section-kicker">System App</p>
+                                    <h2>System Monitor</h2>
+                                </div>
+                                <p class="section-description">
+                                    Monitor the simulated operating system, inspect the current scheduler, and review recent system activity from a desktop-style window.
+                                </p>
+                            </div>
+                            <div class="hero-stats" id="heroStats"></div>
                         </div>
-                        <div id="printerQueue" class="stack-list"></div>
-                    </div>
-                    <div class="subpanel">
-                        <div class="subpanel-header">
-                            <h3>Completed Jobs</h3>
-                            <span class="mini-label">Recently printed</span>
+
+                        <div class="window-two-column">
+                            <section class="subpanel">
+                                <div class="subpanel-header">
+                                    <h3>Performance Snapshot</h3>
+                                    <span class="mini-label">Live metrics</span>
+                                </div>
+                                <div class="summary-stats" id="summaryStats"></div>
+                            </section>
+
+                            <section class="subpanel">
+                                <div class="subpanel-header">
+                                    <h3>System Feed</h3>
+                                    <span class="mini-label">Recent activity</span>
+                                </div>
+                                <div id="activityFeed" class="activity-feed"></div>
+                            </section>
                         </div>
-                        <div id="completedPrintJobs" class="stack-list"></div>
+
+                        <section class="subpanel">
+                            <div class="subpanel-header">
+                                <h3>OS Concept Map</h3>
+                                <span class="mini-label">Academic focus</span>
+                            </div>
+                            <div class="requirement-list">
+                                <div class="requirement-item"><strong>Process Management:</strong> CRUD operations, states, waiting time, turnaround time, and completion tracking.</div>
+                                <div class="requirement-item"><strong>CPU Scheduling:</strong> FCFS, SJF, SRTF, Priority, Round Robin, MLQ, and MLFQ with a Gantt chart.</div>
+                                <div class="requirement-item"><strong>Memory Management:</strong> Fixed and variable partition views with fragmentation indicators.</div>
+                                <div class="requirement-item"><strong>Disk Management:</strong> Disk scheduling plus block-based storage visualization.</div>
+                                <div class="requirement-item"><strong>File System / I/O:</strong> In-memory files, folders, printer queue, and mini app behavior inside the desktop shell.</div>
+                            </div>
+                        </section>
                     </div>
                 </div>
             </section>
 
-            <section class="panel summary-panel">
-                <div class="panel-heading">
-                    <div>
-                        <p class="section-kicker">Module 06</p>
-                        <h2>Summary & Statistics</h2>
+            <section class="app-window" id="window-process" data-app="process">
+                <div class="window-frame">
+                    <header class="window-titlebar" data-drag-handle>
+                        <div class="window-title">
+                            <span class="window-app-icon">PRC</span>
+                            <div>
+                                <strong>Process Manager</strong>
+                                <span>Create and manage simulated processes</span>
+                            </div>
+                        </div>
+                        <div class="window-controls">
+                            <button class="window-control" data-window-action="minimize" data-app="process" type="button">-</button>
+                            <button class="window-control" data-window-action="maximize" data-app="process" type="button">[]</button>
+                            <button class="window-control close" data-window-action="close" data-app="process" type="button">x</button>
+                        </div>
+                    </header>
+                    <div class="window-content">
+                        <div class="window-section">
+                            <div class="panel-heading">
+                                <div>
+                                    <p class="section-kicker">Installed App</p>
+                                    <h2>Task Manager / Process Manager</h2>
+                                </div>
+                                <p class="section-description">
+                                    Add, edit, delete, reset, or generate processes directly inside the desktop OS simulation.
+                                </p>
+                            </div>
+
+                            <div class="button-grid toolbar-grid">
+                                <button id="loadSampleBtn" class="button ghost-button" type="button">Load Sample Processes</button>
+                                <button id="generateSampleBtn" class="button ghost-button" type="button">Generate Processes</button>
+                                <button id="resetProcessRuntimeBtn" class="button ghost-button" type="button">Reset Runtime</button>
+                            </div>
+
+                            <form id="processForm" class="form-grid">
+                                <input id="processPidInput" type="hidden">
+                                <label class="field">
+                                    <span>Process Name</span>
+                                    <input id="processNameInput" type="text" placeholder="Telemetry Service" required>
+                                </label>
+                                <label class="field">
+                                    <span>Arrival Time</span>
+                                    <input id="processArrivalInput" type="number" min="0" value="0" required>
+                                </label>
+                                <label class="field">
+                                    <span>Burst Time</span>
+                                    <input id="processBurstInput" type="number" min="1" value="4" required>
+                                </label>
+                                <label class="field">
+                                    <span>Priority</span>
+                                    <input id="processPriorityInput" type="number" min="1" value="3" required>
+                                </label>
+                                <label class="field">
+                                    <span>Memory Requirement (MB)</span>
+                                    <input id="processMemoryInput" type="number" min="1" value="64" required>
+                                </label>
+                                <div class="button-row">
+                                    <button id="processSubmitBtn" class="button accent-button" type="submit">Add Process</button>
+                                    <button id="processCancelBtn" class="button ghost-button" type="button">Cancel Edit</button>
+                                </div>
+                            </form>
+
+                            <div class="table-wrap">
+                                <table class="process-table">
+                                    <thead>
+                                        <tr>
+                                            <th>PID</th>
+                                            <th>Name</th>
+                                            <th>Arrival</th>
+                                            <th>Burst</th>
+                                            <th>Remain</th>
+                                            <th>Priority</th>
+                                            <th>Memory</th>
+                                            <th>State</th>
+                                            <th>Waiting</th>
+                                            <th>Turnaround</th>
+                                            <th>Completion</th>
+                                            <th>Memory Slot</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="processTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                    <p class="section-description">
-                        Gives a presentation-friendly overview of performance metrics, system state, and recent simulator activity.
-                    </p>
                 </div>
+            </section>
 
-                <div class="summary-stats" id="summaryStats"></div>
-
-                <div class="summary-grid">
-                    <div class="subpanel">
-                        <div class="subpanel-header">
-                            <h3>Recent Activity</h3>
-                            <span class="mini-label">Simulation feed</span>
+            <section class="app-window" id="window-scheduler" data-app="scheduler">
+                <div class="window-frame">
+                    <header class="window-titlebar" data-drag-handle>
+                        <div class="window-title">
+                            <span class="window-app-icon">CPU</span>
+                            <div>
+                                <strong>CPU Scheduler</strong>
+                                <span>Scheduling algorithms and execution timeline</span>
+                            </div>
                         </div>
-                        <div id="activityFeed" class="activity-feed"></div>
+                        <div class="window-controls">
+                            <button class="window-control" data-window-action="minimize" data-app="scheduler" type="button">-</button>
+                            <button class="window-control" data-window-action="maximize" data-app="scheduler" type="button">[]</button>
+                            <button class="window-control close" data-window-action="close" data-app="scheduler" type="button">x</button>
+                        </div>
+                    </header>
+                    <div class="window-content">
+                        <div class="window-section">
+                            <div class="panel-heading">
+                                <div>
+                                    <p class="section-kicker">Installed App</p>
+                                    <h2>CPU Scheduler</h2>
+                                </div>
+                                <p class="section-description">
+                                    Configure algorithms, run the simulation step-by-step, and compare execution results inside a windowed scheduler lab.
+                                </p>
+                            </div>
+
+                            <div class="window-two-column">
+                                <section class="subpanel">
+                                    <div class="subpanel-header">
+                                        <h3>Scheduler Configuration</h3>
+                                        <span class="mini-label">Algorithm setup</span>
+                                    </div>
+                                    <div class="form-grid compact-grid">
+                                        <label class="field">
+                                            <span>CPU Algorithm</span>
+                                            <select id="algorithmSelect"></select>
+                                        </label>
+                                        <label class="field">
+                                            <span>Round Robin Quantum</span>
+                                            <input id="quantumInput" type="number" min="1" value="2">
+                                        </label>
+                                        <label class="field">
+                                            <span>Queue Quantums</span>
+                                            <input id="queueQuantumInput" type="text" value="2,4,8" placeholder="2,4,8">
+                                        </label>
+                                        <label class="field">
+                                            <span>Memory Mode</span>
+                                            <select id="memoryModeSelect">
+                                                <option value="fixed">Fixed Partitions</option>
+                                                <option value="variable">Variable Partitions</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <div class="button-grid toolbar-grid">
+                                        <button id="applySchedulerBtn" class="button accent-button" type="button">Apply Settings</button>
+                                        <button id="resetScheduleBtn" class="button ghost-button" type="button">Reset Timeline View</button>
+                                    </div>
+                                </section>
+
+                                <section class="subpanel">
+                                    <div class="subpanel-header">
+                                        <h3>Run Controls</h3>
+                                        <span class="mini-label">Simulation actions</span>
+                                    </div>
+                                    <div class="button-grid toolbar-grid">
+                                        <button id="stepBtn" class="button" type="button">Run One Step</button>
+                                        <button id="runBtn" class="button accent-button" type="button">Run Full Schedule</button>
+                                        <button id="demoBtn" class="button ghost-button" type="button">Auto Demo</button>
+                                    </div>
+                                    <div class="legend-row">
+                                        <span class="legend-chip ready">Ready</span>
+                                        <span class="legend-chip running">Running</span>
+                                        <span class="legend-chip waiting">Waiting</span>
+                                        <span class="legend-chip terminated">Terminated</span>
+                                    </div>
+                                </section>
+                            </div>
+
+                            <div class="scheduler-strip" id="readyQueues"></div>
+                            <div class="scheduler-highlights" id="schedulerHighlights"></div>
+
+                            <div class="subpanel gantt-panel">
+                                <div class="subpanel-header">
+                                    <h3>Web Gantt Chart</h3>
+                                    <span class="mini-label">Current run timeline</span>
+                                </div>
+                                <div id="ganttChart" class="gantt-strip"></div>
+                                <div id="ganttTimes" class="gantt-times"></div>
+                            </div>
+
+                            <div class="subpanel">
+                                <div class="subpanel-header">
+                                    <h3>Execution Order</h3>
+                                    <span class="mini-label">Dispatch sequence</span>
+                                </div>
+                                <div id="executionOrder" class="token-row"></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="subpanel">
-                        <div class="subpanel-header">
-                            <h3>Course Requirement Map</h3>
-                            <span class="mini-label">Visible in the UI</span>
+                </div>
+            </section>
+
+            <section class="app-window" id="window-memory" data-app="memory">
+                <div class="window-frame">
+                    <header class="window-titlebar" data-drag-handle>
+                        <div class="window-title">
+                            <span class="window-app-icon">MEM</span>
+                            <div>
+                                <strong>Memory Manager</strong>
+                                <span>Allocation map and fragmentation view</span>
+                            </div>
                         </div>
-                        <div class="requirement-list">
-                            <div class="requirement-item">
-                                <strong>Process Management:</strong> Process table with PID, burst time, memory need, waiting time, turnaround time, and states.
+                        <div class="window-controls">
+                            <button class="window-control" data-window-action="minimize" data-app="memory" type="button">-</button>
+                            <button class="window-control" data-window-action="maximize" data-app="memory" type="button">[]</button>
+                            <button class="window-control close" data-window-action="close" data-app="memory" type="button">x</button>
+                        </div>
+                    </header>
+                    <div class="window-content">
+                        <div class="window-section">
+                            <div class="panel-heading">
+                                <div>
+                                    <p class="section-kicker">Installed App</p>
+                                    <h2>Memory Manager</h2>
+                                </div>
+                                <p class="section-description">
+                                    Inspect fixed and variable partition behavior, waiting processes, and educational fragmentation indicators.
+                                </p>
                             </div>
-                            <div class="requirement-item">
-                                <strong>CPU Scheduling:</strong> Round Robin controls, execution order, averages, and Gantt chart timeline.
+
+                            <div class="summary-stats" id="memoryStats"></div>
+                            <div id="memoryPartitions" class="partition-grid"></div>
+
+                            <div class="subpanel">
+                                <div class="subpanel-header">
+                                    <h3>Waiting For Memory</h3>
+                                    <span class="mini-label">Allocation watchlist</span>
+                                </div>
+                                <div id="memoryWaitingList" class="stack-list"></div>
                             </div>
-                            <div class="requirement-item">
-                                <strong>Memory Management:</strong> Fixed partitions, waiting list, allocation, and release behavior.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="app-window" id="window-disk" data-app="disk">
+                <div class="window-frame">
+                    <header class="window-titlebar" data-drag-handle>
+                        <div class="window-title">
+                            <span class="window-app-icon">DSK</span>
+                            <div>
+                                <strong>Disk Manager</strong>
+                                <span>Disk scheduling and storage blocks</span>
                             </div>
-                            <div class="requirement-item">
-                                <strong>File System:</strong> Create, delete, list, and display file contents using in-memory storage.
+                        </div>
+                        <div class="window-controls">
+                            <button class="window-control" data-window-action="minimize" data-app="disk" type="button">-</button>
+                            <button class="window-control" data-window-action="maximize" data-app="disk" type="button">[]</button>
+                            <button class="window-control close" data-window-action="close" data-app="disk" type="button">x</button>
+                        </div>
+                    </header>
+                    <div class="window-content">
+                        <div class="window-section">
+                            <div class="panel-heading">
+                                <div>
+                                    <p class="section-kicker">Installed App</p>
+                                    <h2>Disk Manager</h2>
+                                </div>
+                                <p class="section-description">
+                                    Simulate head movement algorithms and inspect a simple educational storage surface built from blocks.
+                                </p>
                             </div>
-                            <div class="requirement-item">
-                                <strong>I/O Spooling:</strong> Add jobs to a printer queue and process them one at a time.
+
+                            <form id="diskForm" class="form-grid">
+                                <label class="field field-wide">
+                                    <span>Disk Requests</span>
+                                    <input id="diskRequestsInput" type="text" placeholder="82, 170, 43, 140, 24, 16, 190">
+                                </label>
+                                <label class="field">
+                                    <span>Initial Head</span>
+                                    <input id="diskHeadInput" type="number" min="0" value="50">
+                                </label>
+                                <label class="field">
+                                    <span>Algorithm</span>
+                                    <select id="diskAlgorithmSelect">
+                                        <option value="fcfs">FCFS</option>
+                                        <option value="sstf">SSTF</option>
+                                        <option value="scan">SCAN</option>
+                                        <option value="c_scan">C-SCAN</option>
+                                        <option value="look">LOOK</option>
+                                        <option value="c_look">C-LOOK</option>
+                                    </select>
+                                </label>
+                                <label class="field">
+                                    <span>Direction</span>
+                                    <select id="diskDirectionSelect">
+                                        <option value="up">Up</option>
+                                        <option value="down">Down</option>
+                                    </select>
+                                </label>
+                                <button id="runDiskBtn" class="button accent-button" type="submit">Run Disk Schedule</button>
+                            </form>
+
+                            <div class="summary-stats" id="diskStorageStats"></div>
+
+                            <div class="window-two-column">
+                                <section class="subpanel">
+                                    <div class="subpanel-header">
+                                        <h3>Disk Scheduling Result</h3>
+                                        <span class="mini-label">Head movement</span>
+                                    </div>
+                                    <div id="diskScheduleResult" class="stack-list"></div>
+                                </section>
+
+                                <section class="subpanel">
+                                    <div class="subpanel-header">
+                                        <h3>Storage Blocks</h3>
+                                        <span class="mini-label">Educational block map</span>
+                                    </div>
+                                    <div id="diskBlockMap" class="block-grid"></div>
+                                </section>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="app-window" id="window-files" data-app="files">
+                <div class="window-frame">
+                    <header class="window-titlebar" data-drag-handle>
+                        <div class="window-title">
+                            <span class="window-app-icon">FIL</span>
+                            <div>
+                                <strong>File Explorer</strong>
+                                <span>Folders, files, viewer, and storage links</span>
+                            </div>
+                        </div>
+                        <div class="window-controls">
+                            <button class="window-control" data-window-action="minimize" data-app="files" type="button">-</button>
+                            <button class="window-control" data-window-action="maximize" data-app="files" type="button">[]</button>
+                            <button class="window-control close" data-window-action="close" data-app="files" type="button">x</button>
+                        </div>
+                    </header>
+                    <div class="window-content">
+                        <div class="window-section">
+                            <div class="panel-heading">
+                                <div>
+                                    <p class="section-kicker">Installed App</p>
+                                    <h2>File Explorer</h2>
+                                </div>
+                                <p class="section-description">
+                                    Manage simulated folders and files like a tiny desktop explorer while keeping all data in memory.
+                                </p>
+                            </div>
+
+                            <form id="fileForm" class="form-grid">
+                                <input id="fileOriginalPathInput" type="hidden">
+                                <label class="field">
+                                    <span>Folder</span>
+                                    <input id="fileFolderInput" type="text" value="/docs" placeholder="/docs">
+                                </label>
+                                <label class="field">
+                                    <span>File Name</span>
+                                    <input id="fileNameInput" type="text" placeholder="notes.txt" required>
+                                </label>
+                                <label class="field field-wide">
+                                    <span>Contents</span>
+                                    <textarea id="fileContentInput" rows="4" placeholder="Type the simulated file contents here..."></textarea>
+                                </label>
+                                <div class="button-row">
+                                    <button id="fileSubmitBtn" class="button accent-button" type="submit">Create File</button>
+                                    <button id="fileCancelBtn" class="button ghost-button" type="button">Cancel Edit</button>
+                                </div>
+                            </form>
+
+                            <div class="explorer-layout">
+                                <aside class="subpanel explorer-sidebar">
+                                    <div class="subpanel-header">
+                                        <h3>Folders</h3>
+                                        <span class="mini-label">Directory view</span>
+                                    </div>
+                                    <div id="folderSidebar" class="stack-list"></div>
+                                </aside>
+
+                                <div class="explorer-main">
+                                    <div class="window-two-column">
+                                        <section class="subpanel file-browser">
+                                            <div class="subpanel-header">
+                                                <h3>Stored Files</h3>
+                                                <span class="mini-label">In-memory only</span>
+                                            </div>
+                                            <div id="fileList" class="stack-list"></div>
+                                        </section>
+
+                                        <section class="subpanel viewer-panel">
+                                            <div class="subpanel-header">
+                                                <h3>File Viewer</h3>
+                                                <span class="mini-label" id="viewerLabel">Select a file</span>
+                                            </div>
+                                            <pre id="fileViewer" class="viewer-content">Select a file from the list to display its contents.</pre>
+                                        </section>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="app-window" id="window-printer" data-app="printer">
+                <div class="window-frame">
+                    <header class="window-titlebar" data-drag-handle>
+                        <div class="window-title">
+                            <span class="window-app-icon">I/O</span>
+                            <div>
+                                <strong>Printer Queue</strong>
+                                <span>Spooling and print job processing</span>
+                            </div>
+                        </div>
+                        <div class="window-controls">
+                            <button class="window-control" data-window-action="minimize" data-app="printer" type="button">-</button>
+                            <button class="window-control" data-window-action="maximize" data-app="printer" type="button">[]</button>
+                            <button class="window-control close" data-window-action="close" data-app="printer" type="button">x</button>
+                        </div>
+                    </header>
+                    <div class="window-content">
+                        <div class="window-section">
+                            <div class="panel-heading">
+                                <div>
+                                    <p class="section-kicker">Installed App</p>
+                                    <h2>Printer Queue / I/O Spooler</h2>
+                                </div>
+                                <p class="section-description">
+                                    Send jobs into the spooler, review pending and completed output, and process the queue like a basic OS I/O manager.
+                                </p>
+                            </div>
+
+                            <form id="printJobForm" class="form-grid">
+                                <label class="field">
+                                    <span>Document Name</span>
+                                    <input id="printNameInput" type="text" placeholder="daily_report.txt">
+                                </label>
+                                <label class="field">
+                                    <span>Submitted By</span>
+                                    <select id="printSourceSelect"></select>
+                                </label>
+                                <label class="field field-wide">
+                                    <span>Print Content</span>
+                                    <textarea id="printContentInput" rows="4" placeholder="Text to send into the printer spooler..."></textarea>
+                                </label>
+                                <div class="button-row">
+                                    <button id="printSubmitBtn" class="button accent-button" type="submit">Add Print Job</button>
+                                    <button id="processPrintBtn" class="button ghost-button" type="button">Process Next Job</button>
+                                </div>
+                            </form>
+
+                            <div class="window-two-column">
+                                <section class="subpanel">
+                                    <div class="subpanel-header">
+                                        <h3>Pending Queue</h3>
+                                        <span class="mini-label">FIFO jobs</span>
+                                    </div>
+                                    <div id="printerQueue" class="stack-list"></div>
+                                </section>
+                                <section class="subpanel">
+                                    <div class="subpanel-header">
+                                        <h3>Completed Jobs</h3>
+                                        <span class="mini-label">Recently printed</span>
+                                    </div>
+                                    <div id="completedPrintJobs" class="stack-list"></div>
+                                </section>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="app-window" id="window-game" data-app="game">
+                <div class="window-frame">
+                    <header class="window-titlebar" data-drag-handle>
+                        <div class="window-title">
+                            <span class="window-app-icon">FUN</span>
+                            <div>
+                                <strong>Guess the Number</strong>
+                                <span>Built-in mini app</span>
+                            </div>
+                        </div>
+                        <div class="window-controls">
+                            <button class="window-control" data-window-action="minimize" data-app="game" type="button">-</button>
+                            <button class="window-control" data-window-action="maximize" data-app="game" type="button">[]</button>
+                            <button class="window-control close" data-window-action="close" data-app="game" type="button">x</button>
+                        </div>
+                    </header>
+                    <div class="window-content">
+                        <div class="window-section">
+                            <div class="panel-heading">
+                                <div>
+                                    <p class="section-kicker">Installed App</p>
+                                    <h2>Mini Game</h2>
+                                </div>
+                                <p class="section-description">
+                                    A tiny default app inside the simulated operating system for a more complete desktop feel.
+                                </p>
+                            </div>
+
+                            <div class="window-two-column">
+                                <section class="subpanel">
+                                    <div class="subpanel-header">
+                                        <h3>Game Window</h3>
+                                        <span class="mini-label">Guess from 1 to 20</span>
+                                    </div>
+                                    <p id="gameMessage" class="game-message">New game started. Guess a number from 1 to 20.</p>
+                                    <form id="gameForm" class="form-grid compact-grid">
+                                        <label class="field">
+                                            <span>Your Guess</span>
+                                            <input id="gameGuessInput" type="number" min="1" max="20" placeholder="7">
+                                        </label>
+                                        <div class="button-row">
+                                            <button id="gameGuessBtn" class="button accent-button" type="submit">Submit Guess</button>
+                                            <button id="gameResetBtn" class="button ghost-button" type="button">New Game</button>
+                                        </div>
+                                    </form>
+                                </section>
+
+                                <section class="subpanel">
+                                    <div class="subpanel-header">
+                                        <h3>Guess History</h3>
+                                        <span class="mini-label">Last attempts</span>
+                                    </div>
+                                    <div id="gameHistory" class="stack-list"></div>
+                                </section>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="app-window" id="window-settings" data-app="settings">
+                <div class="window-frame">
+                    <header class="window-titlebar" data-drag-handle>
+                        <div class="window-title">
+                            <span class="window-app-icon">SET</span>
+                            <div>
+                                <strong>Settings</strong>
+                                <span>Wallpaper, defaults, and shell options</span>
+                            </div>
+                        </div>
+                        <div class="window-controls">
+                            <button class="window-control" data-window-action="minimize" data-app="settings" type="button">-</button>
+                            <button class="window-control" data-window-action="maximize" data-app="settings" type="button">[]</button>
+                            <button class="window-control close" data-window-action="close" data-app="settings" type="button">x</button>
+                        </div>
+                    </header>
+                    <div class="window-content">
+                        <div class="window-section">
+                            <div class="panel-heading">
+                                <div>
+                                    <p class="section-kicker">Installed App</p>
+                                    <h2>Settings</h2>
+                                </div>
+                                <p class="section-description">
+                                    Configure wallpaper presets, scheduler defaults, desktop animations, and reset actions from a dedicated settings app.
+                                </p>
+                            </div>
+
+                            <div class="window-two-column">
+                                <section class="subpanel">
+                                    <div class="subpanel-header">
+                                        <h3>Wallpaper Presets</h3>
+                                        <span class="mini-label">Cyberpunk themes</span>
+                                    </div>
+                                    <div id="wallpaperOptions" class="wallpaper-grid"></div>
+                                </section>
+
+                                <section class="subpanel">
+                                    <div class="subpanel-header">
+                                        <h3>Desktop Behavior</h3>
+                                        <span class="mini-label">Shell options</span>
+                                    </div>
+                                    <label class="toggle-row">
+                                        <span>Reduce motion</span>
+                                        <input id="animationToggle" type="checkbox">
+                                    </label>
+                                    <div class="button-grid toolbar-grid">
+                                        <button id="resetBtn" class="button accent-button" type="button">Reset Entire Simulator</button>
+                                        <button id="settingsLoadSampleBtn" class="button ghost-button" type="button">Load Sample Data</button>
+                                    </div>
+                                </section>
+                            </div>
+
+                            <section class="subpanel">
+                                <div class="subpanel-header">
+                                    <h3>Scheduler Defaults</h3>
+                                    <span class="mini-label">System settings</span>
+                                </div>
+                                <div class="form-grid compact-grid">
+                                    <label class="field">
+                                        <span>CPU Algorithm</span>
+                                        <select id="settingsAlgorithmSelect"></select>
+                                    </label>
+                                    <label class="field">
+                                        <span>Round Robin Quantum</span>
+                                        <input id="settingsQuantumInput" type="number" min="1" value="2">
+                                    </label>
+                                    <label class="field">
+                                        <span>Queue Quantums</span>
+                                        <input id="settingsQueueQuantumInput" type="text" value="2,4,8">
+                                    </label>
+                                    <label class="field">
+                                        <span>Memory Mode</span>
+                                        <select id="settingsMemoryModeSelect">
+                                            <option value="fixed">Fixed Partitions</option>
+                                            <option value="variable">Variable Partitions</option>
+                                        </select>
+                                    </label>
+                                </div>
+                                <div class="button-grid toolbar-grid">
+                                    <button id="settingsApplySchedulerBtn" class="button accent-button" type="button">Apply Default Settings</button>
+                                </div>
+                            </section>
                         </div>
                     </div>
                 </div>
             </section>
         </main>
+
+        <section class="start-menu" id="startMenu" hidden>
+            <div class="start-menu-frame">
+                <div class="start-menu-header">
+                    <div>
+                        <p class="section-kicker">Launcher</p>
+                        <h2>Neon District OS</h2>
+                    </div>
+                    <p class="section-description">
+                        Open installed apps, change wallpapers, and trigger system actions from the desktop launcher.
+                    </p>
+                </div>
+
+                <div class="start-menu-grid">
+                    <div class="start-menu-primary">
+                        <div class="subpanel-header">
+                            <h3>Installed Apps</h3>
+                            <span class="mini-label">Single-click launch</span>
+                        </div>
+                        <div id="startMenuApps" class="start-menu-apps"></div>
+                    </div>
+
+                    <div class="start-menu-side">
+                        <div class="subpanel">
+                            <div class="subpanel-header">
+                                <h3>Wallpaper Presets</h3>
+                                <span class="mini-label">Quick theme switch</span>
+                            </div>
+                            <div id="startWallpaperChoices" class="wallpaper-grid compact-wallpapers"></div>
+                        </div>
+
+                        <div class="subpanel">
+                            <div class="subpanel-header">
+                                <h3>System Actions</h3>
+                                <span class="mini-label">Shortcuts</span>
+                            </div>
+                            <div class="button-grid toolbar-grid">
+                                <button id="startOpenSettingsBtn" class="button accent-button" type="button">Open Settings</button>
+                                <button id="startLoadSampleBtn" class="button ghost-button" type="button">Load Sample Data</button>
+                                <button id="startResetSystemBtn" class="button ghost-button" type="button">Reset Simulator</button>
+                            </div>
+                        </div>
+
+                        <div class="start-about">
+                            <p class="mini-label">About This Shell</p>
+                            <p>
+                                A browser-based desktop operating system simulation for an Operating Systems final project.
+                                The shell is cyberpunk. The apps demonstrate scheduling, memory, disk, file, and I/O concepts.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="taskbar" id="taskbar">
+            <button id="startButton" class="start-button" type="button">LAUNCH</button>
+            <div id="taskbarApps" class="taskbar-apps"></div>
+            <div class="taskbar-system">
+                <button id="traySettingsButton" class="tray-button" type="button">SETTINGS</button>
+                <span id="systemMessage" class="tray-message">System feed online.</span>
+                <span id="liveClock" class="tray-clock">00:00:00</span>
+            </div>
+        </footer>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
