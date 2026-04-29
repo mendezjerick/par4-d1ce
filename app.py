@@ -1340,11 +1340,26 @@ class Scheduler:
                 "name": process.name,
                 "memory_requirement": process.memory_requirement,
                 "arrival_time": process.arrival_time,
+                "status": "Waiting for memory" if process.arrived else f"Arrives at t={process.arrival_time}",
             }
             for process in processes
-            if process.arrived and process.remaining_time > 0 and not process.allocated
+            if process.remaining_time > 0 and not process.allocated
+        ]
+        process_memory = [
+            {
+                "pid": process.pid,
+                "name": process.name,
+                "memory_requirement": process.memory_requirement,
+                "state": process.state,
+                "allocated": process.allocated,
+                "memory_slot": process.memory_slot,
+                "arrival_time": process.arrival_time,
+            }
+            for process in sorted(processes, key=lambda item: item.pid)
+            if process.remaining_time > 0 or process.allocated
         ]
         memory_snapshot["waiting_processes"] = waiting_processes
+        memory_snapshot["process_memory"] = process_memory
 
         stats = self._build_stats(processes, clock)
         ready_queues = self._ready_queue_snapshot(
@@ -1642,6 +1657,109 @@ class OperatingSystemSimulator:
         self._log(message)
         return message
 
+    def _system_memory_regions(self, files_snapshot: Dict[str, object]) -> List[Dict[str, object]]:
+        file_items = files_snapshot.get("items", [])
+        file_bytes = sum(int(file.get("size", 0)) for file in file_items)
+        queued_bytes = sum(int(job.get("size", 0)) for job in self.printer_spooler.snapshot().get("queue", []))
+        completed_bytes = sum(int(job.get("size", 0)) for job in self.printer_spooler.snapshot().get("completed_jobs", [])[-5:])
+
+        regions = []
+        if file_bytes:
+            file_memory = max(1, math.ceil(file_bytes / 32))
+            regions.append(
+                {
+                    "label": "File Cache",
+                    "size": file_memory,
+                    "start": None,
+                    "occupied": True,
+                    "used_memory": file_memory,
+                    "free_space": 0,
+                    "usage_percent": 100,
+                    "process": {
+                        "pid": "FS",
+                        "name": f"{len(file_items)} in-memory file(s)",
+                        "memory_requirement": file_memory,
+                    },
+                    "type": "system",
+                }
+            )
+
+        spool_memory = max(0, math.ceil((queued_bytes + completed_bytes) / 32))
+        if spool_memory:
+            regions.append(
+                {
+                    "label": "I/O Spooler",
+                    "size": spool_memory,
+                    "start": None,
+                    "occupied": True,
+                    "used_memory": spool_memory,
+                    "free_space": 0,
+                    "usage_percent": 100,
+                    "process": {
+                        "pid": "IO",
+                        "name": "Printer queue buffers",
+                        "memory_requirement": spool_memory,
+                    },
+                    "type": "system",
+                }
+            )
+
+        return regions
+
+    def _with_system_memory_usage(
+        self,
+        memory_snapshot: Dict[str, object],
+        files_snapshot: Dict[str, object],
+    ) -> Dict[str, object]:
+        enriched = dict(memory_snapshot)
+        process_regions = list(memory_snapshot.get("regions", []))
+        system_regions = self._system_memory_regions(files_snapshot)
+        system_used = sum(int(region["used_memory"]) for region in system_regions)
+
+        enriched["regions"] = process_regions + system_regions
+        enriched["used_memory"] = int(memory_snapshot.get("used_memory", 0)) + system_used
+        enriched["free_memory"] = max(0, int(memory_snapshot.get("free_memory", 0)) - system_used)
+        enriched["used_regions"] = int(memory_snapshot.get("used_regions", 0)) + len(system_regions)
+        enriched["total_regions"] = int(memory_snapshot.get("total_regions", 0)) + len(system_regions)
+        enriched["system_used_memory"] = system_used
+        return enriched
+
+    def _enrich_processes_with_memory(
+        self,
+        processes: List[Dict[str, object]],
+        memory_snapshot: Dict[str, object],
+    ) -> List[Dict[str, object]]:
+        memory_lookup = {
+            int(process["pid"]): process
+            for process in memory_snapshot.get("process_memory", [])
+            if str(process.get("pid", "")).isdigit()
+        }
+
+        region_lookup = {}
+        for region in memory_snapshot.get("regions", []):
+            process = region.get("process")
+            if not process or not str(process.get("pid", "")).isdigit():
+                continue
+            region_lookup[int(process["pid"])] = region.get("label", "Allocated")
+
+        enriched_processes = []
+        for process in processes:
+            enriched = dict(process)
+            pid = int(enriched["pid"])
+            memory_info = memory_lookup.get(pid)
+            if memory_info:
+                slot = memory_info.get("memory_slot") or region_lookup.get(pid) or "Unassigned"
+                enriched["partition_label"] = slot
+                enriched["memory_slot"] = slot
+                enriched["memory_allocated"] = bool(memory_info.get("allocated"))
+                enriched["memory_status"] = "Allocated" if memory_info.get("allocated") else "Pending"
+            else:
+                enriched["memory_allocated"] = False
+                enriched["memory_status"] = "Released" if enriched.get("state") == "Terminated" else "Pending"
+            enriched_processes.append(enriched)
+
+        return enriched_processes
+
     def run_disk_schedule(self, payload: Dict[str, object]) -> str:
         raw_requests = str(payload.get("requests") or "")
         requests = [chunk.strip() for chunk in raw_requests.split(",") if chunk.strip()]
@@ -1694,6 +1812,9 @@ class OperatingSystemSimulator:
         terminated_count = frame["stats"]["terminated_count"]
         total_processes = frame["stats"]["total_processes"]
 
+        memory_snapshot = self._with_system_memory_usage(frame["memory"], files_snapshot)
+        processes_snapshot = self._enrich_processes_with_memory(frame["processes"], memory_snapshot)
+
         return {
             "clock": frame["clock"],
             "shell": {
@@ -1723,12 +1844,12 @@ class OperatingSystemSimulator:
             },
             "time_quantum": self.time_quantum,
             "queue_quantums": self.queue_quantums,
-            "processes": frame["processes"],
+            "processes": processes_snapshot,
             "execution_order": frame["execution_order"],
             "gantt_segments": frame["gantt_segments"],
             "current_process": frame["current_process"],
             "last_event": frame["last_event"],
-            "memory": frame["memory"],
+            "memory": memory_snapshot,
             "stats": frame["stats"],
             "ready_queues": frame["ready_queues"],
             "files": files_snapshot,

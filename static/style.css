@@ -368,24 +368,33 @@ body::after {
 .desktop-icons {
     top: 20px;
     left: 18px;
-    width: 110px;
+    width: min(360px, calc(100vw - 36px));
     bottom: calc(var(--shell-safe-bottom) + 2px);
     max-height: calc(100% - 20px - var(--shell-safe-bottom) - 2px);
     display: grid;
+    grid-template-columns: repeat(auto-fill, 82px);
+    grid-auto-rows: 92px;
     align-content: start;
-    gap: 10px;
+    justify-content: start;
+    gap: 12px;
     min-width: 0;
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
+    padding-right: 0;
+    z-index: 4;
 }
 
 .desktop-icon {
+    position: relative;
     display: grid;
     justify-items: center;
-    gap: 8px;
-    padding: 10px 8px;
+    place-items: center;
+    align-content: center;
+    width: 82px;
+    height: 92px;
+    padding: 8px 6px;
     border: 1px solid transparent;
-    border-radius: 16px;
+    border-radius: 8px;
     background: transparent;
     color: var(--text-main);
     font: inherit;
@@ -402,7 +411,8 @@ body::after {
 }
 
 .desktop-icon.open,
-.desktop-icon.active {
+.desktop-icon.active,
+.desktop-icon.selected {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 74, 188, 0.24);
 }
@@ -416,21 +426,42 @@ body::after {
 .window-app-icon {
     width: 42px;
     height: 42px;
-    border-radius: 12px;
+    border-radius: 8px;
     display: grid;
     place-items: center;
     font-family: var(--font-heading);
-    font-size: 0.86rem;
+    font-size: 1.2rem;
     background: linear-gradient(180deg, rgba(255, 74, 188, 0.18), rgba(78, 230, 255, 0.12));
     border: 1px solid rgba(78, 230, 255, 0.2);
     box-shadow: 0 0 18px rgba(78, 230, 255, 0.12);
 }
 
-.desktop-icon-label {
-    font-size: 0.78rem;
-    text-align: center;
-    line-height: 1.35;
+.desktop-icon-label,
+.start-app-label {
+    display: block;
+    max-width: 100%;
     color: var(--text-soft);
+    font-size: 0.72rem;
+    line-height: 1.2;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.desktop-icon-status {
+    position: absolute;
+    right: 12px;
+    bottom: 28px;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: transparent;
+}
+
+.desktop-icon.open .desktop-icon-status {
+    background: var(--cyan);
+    box-shadow: 0 0 10px rgba(78, 230, 255, 0.7);
 }
 
 .desktop-widget {
@@ -467,11 +498,14 @@ body::after {
 .window-layer {
     inset: 0 0 var(--shell-safe-bottom) 0;
     overflow: hidden;
+    pointer-events: none;
+    z-index: 8;
 }
 
 .app-window {
     position: absolute;
     display: none;
+    pointer-events: auto;
     min-width: 320px;
     min-height: 240px;
     max-width: calc(100vw - 56px);
@@ -556,6 +590,15 @@ body::after {
     display: block;
     font-size: 0.78rem;
     color: var(--text-dim);
+}
+
+.window-title .window-app-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 42px;
+    color: var(--text-main);
+    font-size: 1.2rem;
+    line-height: 1;
 }
 
 .window-controls {
@@ -826,6 +869,17 @@ body::after {
     color: var(--yellow);
 }
 
+.table-subtext {
+    margin-top: 6px;
+    color: var(--text-dim);
+    font-size: 0.76rem;
+}
+
+.table-pill.allocated-pill {
+    border-color: rgba(89, 255, 207, 0.28);
+    color: var(--green);
+}
+
 .scheduler-strip {
     display: grid;
     gap: 16px;
@@ -885,6 +939,15 @@ body::after {
 .partition-card {
     padding: 18px;
     border-radius: var(--radius-md);
+}
+
+.partition-card.system-region {
+    border-color: rgba(89, 255, 207, 0.2);
+    background: linear-gradient(180deg, rgba(12, 36, 38, 0.9), rgba(7, 18, 30, 0.92));
+}
+
+.partition-card.system-region .memory-fill {
+    background: linear-gradient(90deg, var(--green), var(--cyan));
 }
 
 .partition-title {
@@ -1034,6 +1097,25 @@ body::after {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.start-menu .compact-wallpapers {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+}
+
+.start-menu .wallpaper-option {
+    gap: 6px;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.start-menu .wallpaper-preview {
+    height: 38px;
+    border-radius: 7px;
+}
+
+.start-menu .wallpaper-option .file-meta {
+    display: none;
+}
+
 .wallpaper-option {
     display: grid;
     gap: 10px;
@@ -1115,46 +1197,45 @@ body::after {
 .start-menu {
     left: 16px;
     bottom: calc(var(--taskbar-live-height) + 12px);
-    width: min(860px, calc(100vw - 32px));
-    max-height: calc(100vh - var(--shell-safe-bottom) - 18px);
+    width: min(920px, calc(100vw - 32px));
+    max-height: calc(100vh - var(--shell-safe-bottom) - 8px);
     z-index: 20;
     overflow: hidden;
 }
 
 @supports (height: 100dvh) {
     .start-menu {
-        width: min(860px, calc(100dvw - 32px));
-        max-height: calc(100dvh - var(--shell-safe-bottom) - 18px);
+        width: min(920px, calc(100dvw - 32px));
+        max-height: calc(100dvh - var(--shell-safe-bottom) - 8px);
     }
 }
 
 .start-menu-frame {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
+    display: block;
     max-height: inherit;
-    padding: 22px;
-    overflow: hidden;
+    padding: 18px;
+    overflow: auto;
 }
 
 .start-menu-grid {
     display: grid;
-    gap: 18px;
-    grid-template-columns: 1.3fr 0.9fr;
+    gap: 16px;
+    grid-template-columns: minmax(360px, 1fr) minmax(280px, 320px);
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .start-menu-header {
-    margin-bottom: 18px;
+    margin-bottom: 14px;
 }
 
 .start-menu-apps {
     display: grid;
-    gap: 10px;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
     min-height: 0;
-    overflow: auto;
-    padding-right: 4px;
+    overflow: visible;
+    padding-right: 0;
     align-content: start;
 }
 
@@ -1166,30 +1247,19 @@ body::after {
 }
 
 .start-app-button {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    display: grid;
+    place-items: center;
+    align-content: center;
     min-width: 0;
-    padding: 14px;
-    border-radius: 16px;
+    min-height: 86px;
+    padding: 10px;
+    border-radius: 8px;
     border: 1px solid rgba(78, 230, 255, 0.12);
     background: rgba(7, 18, 34, 0.72);
     color: var(--text-main);
     font: inherit;
-    text-align: left;
+    text-align: center;
     cursor: pointer;
-}
-
-.start-app-button strong {
-    display: block;
-}
-
-.start-app-button span {
-    display: block;
-    color: var(--text-dim);
-    font-size: 0.8rem;
-    min-width: 0;
-    overflow-wrap: anywhere;
 }
 
 .start-menu-side {
@@ -1197,8 +1267,8 @@ body::after {
     gap: 14px;
     min-width: 0;
     min-height: 0;
-    overflow: auto;
-    padding-right: 4px;
+    overflow: visible;
+    padding-right: 0;
     align-content: start;
 }
 
@@ -1213,8 +1283,8 @@ body::after {
 .taskbar-app .window-app-icon {
     width: 34px;
     height: 34px;
-    border-radius: 10px;
-    font-size: 0.72rem;
+    border-radius: 8px;
+    font-size: 1rem;
 }
 
 .taskbar {
@@ -1344,9 +1414,12 @@ body::after {
     }
 
     .explorer-layout,
-    .window-two-column,
-    .start-menu-grid {
+    .window-two-column {
         grid-template-columns: 1fr;
+    }
+
+    .start-menu-grid {
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .form-grid > .field,
@@ -1383,12 +1456,15 @@ body::after {
         top: 12px;
         bottom: calc(var(--taskbar-height) + 16px);
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        grid-auto-rows: min-content;
+        grid-auto-rows: 82px;
         align-content: start;
     }
 
     .desktop-icon {
         justify-items: center;
+        width: 72px;
+        height: 82px;
+        max-width: 100%;
     }
 
     .taskbar {
@@ -1445,6 +1521,19 @@ body::after {
     }
 
     .start-menu-frame {
-        padding: 18px;
+        padding: 14px;
+    }
+
+    .start-menu-header .section-description,
+    .start-about {
+        display: none;
+    }
+
+    .start-menu-apps {
+        grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    }
+
+    .start-app-button {
+        min-height: 64px;
     }
 }

@@ -34,7 +34,8 @@ const WALLPAPERS = [
 const APP_DEFINITIONS = [
     {
         id: "system",
-        icon: "SYS",
+        icon: "▣",
+        shortName: "System",
         title: "System Monitor",
         subtitle: "Live shell overview",
         width: 900,
@@ -42,7 +43,8 @@ const APP_DEFINITIONS = [
     },
     {
         id: "process",
-        icon: "PRC",
+        icon: "▤",
+        shortName: "Process",
         title: "Process Manager",
         subtitle: "Task creation and process control",
         width: 1040,
@@ -50,7 +52,8 @@ const APP_DEFINITIONS = [
     },
     {
         id: "scheduler",
-        icon: "CPU",
+        icon: "◴",
+        shortName: "CPU",
         title: "CPU Scheduler",
         subtitle: "Algorithms and Gantt timeline",
         width: 980,
@@ -58,7 +61,8 @@ const APP_DEFINITIONS = [
     },
     {
         id: "memory",
-        icon: "MEM",
+        icon: "▦",
+        shortName: "Memory",
         title: "Memory Manager",
         subtitle: "Allocation, partitions, fragmentation",
         width: 860,
@@ -66,7 +70,8 @@ const APP_DEFINITIONS = [
     },
     {
         id: "disk",
-        icon: "DSK",
+        icon: "◎",
+        shortName: "Disk",
         title: "Disk Manager",
         subtitle: "Head movement and storage blocks",
         width: 920,
@@ -74,7 +79,8 @@ const APP_DEFINITIONS = [
     },
     {
         id: "files",
-        icon: "FIL",
+        icon: "▰",
+        shortName: "Files",
         title: "File Explorer",
         subtitle: "Folders, files, viewer",
         width: 1080,
@@ -82,7 +88,8 @@ const APP_DEFINITIONS = [
     },
     {
         id: "printer",
-        icon: "I/O",
+        icon: "◫",
+        shortName: "Printer",
         title: "Printer Queue",
         subtitle: "Spooling and completed jobs",
         width: 880,
@@ -90,15 +97,17 @@ const APP_DEFINITIONS = [
     },
     {
         id: "game",
-        icon: "FUN",
-        title: "Mini Game",
-        subtitle: "Built-in app",
+        icon: "◇",
+        shortName: "Game",
+        title: "We Become What We Behold",
+        subtitle: "External game link",
         width: 760,
         height: 460,
     },
     {
         id: "settings",
-        icon: "SET",
+        icon: "⚙",
+        shortName: "Settings",
         title: "Settings",
         subtitle: "Wallpaper and shell defaults",
         width: 780,
@@ -280,7 +289,7 @@ function bindEvents() {
 
     window.addEventListener("resize", handleViewportResize);
     window.visualViewport?.addEventListener("resize", handleViewportResize);
-    elements.desktopIcons.addEventListener("click", handleAppLaunchClick);
+    elements.desktopIcons.addEventListener("click", handleDesktopIconClick);
     elements.startMenuApps.addEventListener("click", handleAppLaunchClick);
     elements.taskbarApps.addEventListener("click", handleTaskbarAppClick);
     elements.traySettingsButton.addEventListener("click", () => {
@@ -351,8 +360,8 @@ function bindEvents() {
         await performAction("/api/printer/process", { method: "POST" });
     });
 
-    elements.gameForm.addEventListener("submit", handleGameSubmit);
-    elements.gameResetBtn.addEventListener("click", async () => {
+    elements.gameForm?.addEventListener("submit", handleGameSubmit);
+    elements.gameResetBtn?.addEventListener("click", async () => {
         await performAction("/api/game/reset", { method: "POST" });
     });
 }
@@ -366,6 +375,20 @@ function handleAppLaunchClick(event) {
     if (!APP_LOOKUP[appId]) {
         return;
     }
+    openWindow(appId);
+    setStartMenuVisible(false);
+}
+
+function handleDesktopIconClick(event) {
+    const button = event.target.closest("[data-app]");
+    if (!button) {
+        return;
+    }
+    const appId = button.dataset.app;
+    if (!APP_LOOKUP[appId]) {
+        return;
+    }
+
     openWindow(appId);
 }
 
@@ -976,9 +999,10 @@ function renderDesktopIcons() {
                 .join(" ");
 
             return `
-                <button class="${classes}" type="button" data-app="${escapeAttribute(app.id)}" title="${escapeAttribute(app.title)}">
-                    <span class="desktop-icon-glyph">${escapeHtml(app.icon)}</span>
-                    <span class="desktop-icon-label">${escapeHtml(app.title)}<br>${escapeHtml(status)}</span>
+                <button class="${classes}" type="button" data-app="${escapeAttribute(app.id)}" title="${escapeAttribute(app.title)} - ${escapeAttribute(status)}" aria-label="Open ${escapeAttribute(app.title)}">
+                    <span class="desktop-icon-glyph" aria-hidden="true">${escapeHtml(app.icon)}</span>
+                    <span class="desktop-icon-label">${escapeHtml(app.shortName)}</span>
+                    <span class="desktop-icon-status" aria-hidden="true"></span>
                 </button>
             `;
         })
@@ -989,12 +1013,9 @@ function renderStartMenuApps() {
     elements.startMenuApps.innerHTML = APP_DEFINITIONS
         .map(
             (app) => `
-                <button class="start-app-button" type="button" data-app="${escapeAttribute(app.id)}">
-                    <span class="window-app-icon">${escapeHtml(app.icon)}</span>
-                    <span>
-                        <strong>${escapeHtml(app.title)}</strong>
-                        <span>${escapeHtml(app.subtitle)}</span>
-                    </span>
+                <button class="start-app-button" type="button" data-app="${escapeAttribute(app.id)}" title="${escapeAttribute(app.title)}" aria-label="Open ${escapeAttribute(app.title)}">
+                    <span class="window-app-icon" aria-hidden="true">${escapeHtml(app.icon)}</span>
+                    <span class="start-app-label">${escapeHtml(app.shortName)}</span>
                 </button>
             `
         )
@@ -1302,7 +1323,12 @@ function renderProcesses(processes) {
                     <td>${process.waiting_time}</td>
                     <td>${process.turnaround_time}</td>
                     <td>${process.completion_time ?? "-"}</td>
-                    <td><span class="table-pill">${escapeHtml(process.partition_label || "Unassigned")}</span></td>
+                    <td>
+                        <span class="table-pill ${process.memory_allocated ? "allocated-pill" : ""}">
+                            ${escapeHtml(process.partition_label || process.memory_slot || "Unassigned")}
+                        </span>
+                        <div class="table-subtext">${escapeHtml(process.memory_status || "Pending")}</div>
+                    </td>
                     <td>
                         <div class="button-row">
                             <button class="button ghost-button small-button" type="button" data-action="edit" data-pid="${process.pid}">Edit</button>
@@ -1420,26 +1446,26 @@ function renderMemory(memory) {
         { label: "Mode", value: memory.mode_label, detail: `${memory.used_regions}/${memory.total_regions} regions allocated` },
         { label: "Used Memory", value: `${memory.used_memory} MB`, detail: `${memory.free_memory} MB free` },
         { label: "Largest Free Block", value: `${memory.fragmentation.largest_free_block} MB`, detail: "largest available region" },
-        { label: "Fragmentation", value: `I:${memory.fragmentation.internal} / E:${memory.fragmentation.external}`, detail: "educational indicator" },
+        { label: "System Usage", value: `${memory.system_used_memory || 0} MB`, detail: "files and I/O buffers" },
     ];
 
     elements.memoryStats.innerHTML = cards.map(metricCardMarkup).join("");
     elements.memoryPartitions.innerHTML = memory.regions
         .map(
             (region) => `
-                <article class="partition-card">
+                <article class="partition-card ${region.type === "system" ? "system-region" : ""}">
                     <div class="partition-header">
                         <div>
                             <div class="partition-title">${escapeHtml(region.label)}</div>
                             <div class="partition-size">${region.size} MB capacity</div>
                         </div>
-                        <span class="state-badge ${region.occupied ? "running" : "waiting"}">${region.occupied ? "Allocated" : "Free"}</span>
+                        <span class="state-badge ${region.type === "system" ? "ready" : region.occupied ? "running" : "waiting"}">${region.type === "system" ? "System" : region.occupied ? "Allocated" : "Free"}</span>
                     </div>
                     <div class="memory-bar">
                         <div class="memory-fill" style="width:${Math.max(region.usage_percent || 0, region.occupied ? 18 : 2)}%"></div>
                     </div>
                     <div class="memory-meta">
-                        <span>${region.process ? `P${region.process.pid} :: ${escapeHtml(region.process.name)}` : "Available region"}</span>
+                        <span>${region.process ? `${formatMemoryOwner(region.process.pid)} :: ${escapeHtml(region.process.name)}` : "Available region"}</span>
                         <span>Used: ${region.used_memory} MB</span>
                         <span>Free: ${region.free_space} MB</span>
                     </div>
@@ -1448,20 +1474,44 @@ function renderMemory(memory) {
         )
         .join("");
 
-    if (!memory.waiting_processes.length) {
-        elements.memoryWaitingList.innerHTML = `<span class="empty-chip">No processes are waiting for memory.</span>`;
+    const processMemory = memory.process_memory || [];
+    if (!processMemory.length && !memory.waiting_processes.length) {
+        elements.memoryWaitingList.innerHTML = `<span class="empty-chip">No process memory demand yet.</span>`;
         return;
     }
 
-    elements.memoryWaitingList.innerHTML = memory.waiting_processes
+    const processMemoryMarkup = processMemory
+        .map(
+            (process) => `
+                <article class="queue-item memory-demand-item">
+                    <div class="queue-item-header">
+                        <strong>P${process.pid} :: ${escapeHtml(process.name)}</strong>
+                        <span class="queue-chip ${process.allocated ? "running" : "waiting"}">${process.allocated ? "Allocated" : "Pending"}</span>
+                    </div>
+                    <div class="queue-meta">
+                        Uses ${process.memory_requirement} MB | ${escapeHtml(process.memory_slot || "Unassigned")} | ${escapeHtml(process.state || "Waiting")}
+                    </div>
+                </article>
+            `
+        )
+        .join("");
+
+    const waitingMarkup = (memory.waiting_processes || [])
+        .filter((process) => !processMemory.some((item) => item.pid === process.pid))
         .map(
             (process) => `
                 <div class="queue-chip waiting">
-                    P${process.pid} :: ${escapeHtml(process.name)} needs ${process.memory_requirement} MB
+                    P${process.pid} :: ${escapeHtml(process.name)} needs ${process.memory_requirement} MB (${escapeHtml(process.status || "Waiting")})
                 </div>
             `
         )
         .join("");
+
+    elements.memoryWaitingList.innerHTML = processMemoryMarkup + waitingMarkup;
+}
+
+function formatMemoryOwner(pid) {
+    return Number.isFinite(Number(pid)) ? `P${pid}` : String(pid);
 }
 
 function renderDisk(disk) {
@@ -1654,6 +1704,10 @@ function renderPrinter(printer, processes) {
 }
 
 function renderGame(game) {
+    if (!elements.gameMessage || !elements.gameHistory) {
+        return;
+    }
+
     elements.gameMessage.textContent = game.message;
     elements.gameHistory.innerHTML = game.history.length
         ? game.history
@@ -1821,8 +1875,12 @@ function updateActionStates() {
     elements.runDiskBtn.disabled = appState.busy;
     elements.printSubmitBtn.disabled = appState.busy;
     elements.processPrintBtn.disabled = appState.busy || !state?.printer?.pending_count;
-    elements.gameGuessBtn.disabled = appState.busy;
-    elements.gameResetBtn.disabled = appState.busy;
+    if (elements.gameGuessBtn) {
+        elements.gameGuessBtn.disabled = appState.busy;
+    }
+    if (elements.gameResetBtn) {
+        elements.gameResetBtn.disabled = appState.busy;
+    }
 }
 
 function setSystemMessage(message, tone = "info") {
