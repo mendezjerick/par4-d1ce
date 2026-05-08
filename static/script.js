@@ -120,6 +120,9 @@ const DEFAULT_WALLPAPER_ID = "wallpaper-dice";
 const ALL_WALLPAPER_CLASSES = WALLPAPERS.map((wallpaper) => wallpaper.id);
 const APP_LOOKUP = Object.fromEntries(APP_DEFINITIONS.map((app) => [app.id, app]));
 const FOLDER_ALL = "__all__";
+const DESKTOP_ICON_POSITIONS_KEY = "desktop_icon_positions_v1";
+const DESKTOP_ICON_HOLD_MS = 220;
+const DESKTOP_ICON_MOVE_TOLERANCE = 6;
 
 const appState = {
     data: null,
@@ -134,6 +137,9 @@ const appState = {
     desktopEntered: false,
     wallpaperId: DEFAULT_WALLPAPER_ID,
     reducedMotion: false,
+    shortcutPositions: {},
+    desktopIconDrag: null,
+    suppressDesktopIconClick: false,
 };
 
 const elements = {
@@ -240,11 +246,12 @@ document.addEventListener("DOMContentLoaded", initializeDesktopShell);
 
 async function initializeDesktopShell() {
     initializeWindowState();
+    syncShellViewportMetrics();
+    initializeDesktopIconPositions();
     bindEvents();
     renderDesktopIcons();
     renderStartMenuApps();
     renderWallpaperOptions();
-    syncShellViewportMetrics();
     applyWallpaperPreference(readPreference("wallpaper", DEFAULT_WALLPAPER_ID), false);
     applyReducedMotionPreference(readPreference("reduced_motion", "0") === "1", false);
     startClock();
@@ -290,6 +297,10 @@ function bindEvents() {
     window.addEventListener("resize", handleViewportResize);
     window.visualViewport?.addEventListener("resize", handleViewportResize);
     elements.desktopIcons.addEventListener("click", handleDesktopIconClick);
+    elements.desktopIcons.addEventListener("pointerdown", handleDesktopIconPointerDown);
+    elements.desktopIcons.addEventListener("pointermove", handleDesktopIconPointerMove);
+    elements.desktopIcons.addEventListener("pointerup", handleDesktopIconPointerEnd);
+    elements.desktopIcons.addEventListener("pointercancel", handleDesktopIconPointerEnd);
     elements.startMenuApps.addEventListener("click", handleAppLaunchClick);
     elements.taskbarApps.addEventListener("click", handleTaskbarAppClick);
     elements.traySettingsButton.addEventListener("click", () => {
@@ -380,6 +391,11 @@ function handleAppLaunchClick(event) {
 }
 
 function handleDesktopIconClick(event) {
+    if (appState.suppressDesktopIconClick) {
+        appState.suppressDesktopIconClick = false;
+        return;
+    }
+
     const button = event.target.closest("[data-app]");
     if (!button) {
         return;
@@ -390,6 +406,119 @@ function handleDesktopIconClick(event) {
     }
 
     openWindow(appId);
+}
+
+function handleDesktopIconPointerDown(event) {
+    const button = event.target.closest(".desktop-icon[data-app]");
+    if (!button || (event.pointerType === "mouse" && event.button !== 0)) {
+        return;
+    }
+
+    const appId = button.dataset.app;
+    if (!APP_LOOKUP[appId]) {
+        return;
+    }
+
+    const buttonRect = button.getBoundingClientRect();
+    const drag = {
+        appId,
+        button,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        offsetX: event.clientX - buttonRect.left,
+        offsetY: event.clientY - buttonRect.top,
+        active: false,
+        moved: false,
+        holdTimer: window.setTimeout(() => {
+            startDesktopIconDrag(event.pointerId);
+        }, DESKTOP_ICON_HOLD_MS),
+    };
+
+    appState.desktopIconDrag = drag;
+    button.classList.add("holding");
+    try {
+        button.setPointerCapture(event.pointerId);
+    } catch (error) {
+        window.clearTimeout(drag.holdTimer);
+        button.classList.remove("holding");
+        appState.desktopIconDrag = null;
+        return;
+    }
+}
+
+function handleDesktopIconPointerMove(event) {
+    const drag = appState.desktopIconDrag;
+    if (!drag || drag.pointerId !== event.pointerId) {
+        return;
+    }
+
+    const distance = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
+    if (!drag.active) {
+        if (distance <= DESKTOP_ICON_MOVE_TOLERANCE) {
+            return;
+        }
+        startDesktopIconDrag(event.pointerId);
+    }
+
+    const areaRect = elements.desktopIcons.getBoundingClientRect();
+    const nextPosition = clampShortcutPosition({
+        x: event.clientX - areaRect.left - drag.offsetX,
+        y: event.clientY - areaRect.top - drag.offsetY,
+    });
+
+    drag.moved = true;
+    appState.shortcutPositions[drag.appId] = nextPosition;
+    applyShortcutPosition(drag.button, nextPosition);
+    event.preventDefault();
+}
+
+function handleDesktopIconPointerEnd(event) {
+    const drag = appState.desktopIconDrag;
+    if (!drag || drag.pointerId !== event.pointerId) {
+        return;
+    }
+
+    finishDesktopIconDrag(event);
+}
+
+function startDesktopIconDrag(pointerId) {
+    const drag = appState.desktopIconDrag;
+    if (!drag || drag.pointerId !== pointerId || drag.active) {
+        return;
+    }
+
+    window.clearTimeout(drag.holdTimer);
+    drag.active = true;
+    drag.button.classList.remove("holding");
+    drag.button.classList.add("dragging");
+    elements.desktopIcons.classList.add("arranging");
+    setStartMenuVisible(false);
+}
+
+function finishDesktopIconDrag(event) {
+    const drag = appState.desktopIconDrag;
+    window.clearTimeout(drag.holdTimer);
+    drag.button.classList.remove("holding", "dragging");
+    elements.desktopIcons.classList.remove("arranging");
+
+    try {
+        drag.button.releasePointerCapture(drag.pointerId);
+    } catch (error) {
+        // Browsers can release pointer capture automatically after cancellation.
+    }
+
+    if (drag.active) {
+        saveDesktopIconPositions();
+        appState.suppressDesktopIconClick = true;
+        window.setTimeout(() => {
+            appState.suppressDesktopIconClick = false;
+        }, 160);
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    appState.desktopIconDrag = null;
 }
 
 function handleTaskbarAppClick(event) {
@@ -918,6 +1047,8 @@ function applyWindowLayout(appId) {
 
 function handleViewportResize() {
     syncShellViewportMetrics();
+    clampDesktopIconPositions();
+    renderDesktopIcons();
     APP_DEFINITIONS.forEach((app, index) => {
         const windowState = appState.windows[app.id];
         if (!windowState) {
@@ -985,11 +1116,112 @@ function getWindowElement(appId) {
     return document.getElementById(`window-${appId}`);
 }
 
+function initializeDesktopIconPositions() {
+    appState.shortcutPositions = readStoredDesktopIconPositions();
+    ensureDesktopIconPositions();
+}
+
+function readStoredDesktopIconPositions() {
+    try {
+        const rawPositions = window.localStorage.getItem(DESKTOP_ICON_POSITIONS_KEY);
+        const parsedPositions = rawPositions ? JSON.parse(rawPositions) : {};
+        return parsedPositions && typeof parsedPositions === "object" ? parsedPositions : {};
+    } catch (error) {
+        return {};
+    }
+}
+
+function saveDesktopIconPositions() {
+    storePreference(DESKTOP_ICON_POSITIONS_KEY, JSON.stringify(appState.shortcutPositions));
+}
+
+function ensureDesktopIconPositions() {
+    const defaultPositions = createDefaultShortcutPositions();
+    const nextPositions = {};
+
+    APP_DEFINITIONS.forEach((app) => {
+        const storedPosition = appState.shortcutPositions[app.id];
+        nextPositions[app.id] = isValidShortcutPosition(storedPosition)
+            ? clampShortcutPosition(storedPosition)
+            : defaultPositions[app.id];
+    });
+
+    appState.shortcutPositions = nextPositions;
+}
+
+function clampDesktopIconPositions() {
+    ensureDesktopIconPositions();
+    saveDesktopIconPositions();
+}
+
+function createDefaultShortcutPositions() {
+    const metrics = getDesktopIconMetrics();
+    const area = getDesktopIconAreaSize();
+    const rowCount = Math.max(1, Math.floor((area.height + metrics.gap) / (metrics.height + metrics.gap)));
+    const positions = {};
+
+    APP_DEFINITIONS.forEach((app, index) => {
+        const column = Math.floor(index / rowCount);
+        const row = index % rowCount;
+        positions[app.id] = clampShortcutPosition({
+            x: column * (metrics.width + metrics.gap),
+            y: row * (metrics.height + metrics.gap),
+        });
+    });
+
+    return positions;
+}
+
+function getShortcutPosition(appId) {
+    ensureDesktopIconPositions();
+    return appState.shortcutPositions[appId] || createDefaultShortcutPositions()[appId] || { x: 0, y: 0 };
+}
+
+function getDesktopIconMetrics() {
+    return window.innerWidth <= 760
+        ? { width: 82, height: 92, gap: 10 }
+        : { width: 94, height: 104, gap: 14 };
+}
+
+function getDesktopIconAreaSize() {
+    return {
+        width: Math.max(0, elements.desktopIcons.clientWidth),
+        height: Math.max(0, elements.desktopIcons.clientHeight),
+    };
+}
+
+function clampShortcutPosition(position) {
+    const metrics = getDesktopIconMetrics();
+    const area = getDesktopIconAreaSize();
+    const maxX = Math.max(0, area.width - metrics.width);
+    const maxY = Math.max(0, area.height - metrics.height);
+
+    return {
+        x: Math.round(Math.min(Math.max(Number(position.x) || 0, 0), maxX)),
+        y: Math.round(Math.min(Math.max(Number(position.y) || 0, 0), maxY)),
+    };
+}
+
+function isValidShortcutPosition(position) {
+    return (
+        position &&
+        Number.isFinite(Number(position.x)) &&
+        Number.isFinite(Number(position.y))
+    );
+}
+
+function applyShortcutPosition(button, position) {
+    button.style.left = `${position.x}px`;
+    button.style.top = `${position.y}px`;
+}
+
 function renderDesktopIcons() {
+    ensureDesktopIconPositions();
     elements.desktopIcons.innerHTML = APP_DEFINITIONS
         .map((app) => {
             const state = appState.windows[app.id];
             const status = state?.open ? (state.minimized ? "Minimized" : "Open") : "Closed";
+            const position = getShortcutPosition(app.id);
             const classes = [
                 "desktop-icon",
                 state?.open ? "open" : "",
@@ -999,7 +1231,7 @@ function renderDesktopIcons() {
                 .join(" ");
 
             return `
-                <button class="${classes}" type="button" data-app="${escapeAttribute(app.id)}" title="${escapeAttribute(app.title)} - ${escapeAttribute(status)}" aria-label="Open ${escapeAttribute(app.title)}">
+                <button class="${classes}" type="button" draggable="false" data-app="${escapeAttribute(app.id)}" title="${escapeAttribute(app.title)} - ${escapeAttribute(status)}" aria-label="Open ${escapeAttribute(app.title)}" style="left:${position.x}px; top:${position.y}px;">
                     <span class="desktop-icon-glyph" aria-hidden="true">${escapeHtml(app.icon)}</span>
                     <span class="desktop-icon-label">${escapeHtml(app.shortName)}</span>
                     <span class="desktop-icon-status" aria-hidden="true"></span>
